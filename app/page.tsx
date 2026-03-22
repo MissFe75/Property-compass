@@ -14,7 +14,7 @@ const tools = [
     href: "/app/mortgage",
   },
   {
-    title: "Rental Yield Calculator",
+    title: "Yield Calculator",
     description:
       "Check gross and net rental yield with rent, costs and purchase price.",
     href: "/app/yield",

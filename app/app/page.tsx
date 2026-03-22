@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 function parseMoney(value: string): number {
@@ -143,6 +143,17 @@ export default function AppPage() {
   const currentNetYield = currentPurchase > 0 ? (currentAnnualNetIncome / currentPurchase) * 100 : 0;
   const currentWeeklyCashflow = (currentAnnualNetIncome - currentMonthlyRepayment * 12) / 52;
 
+  useEffect(() => {
+    const totalExpenses = parseMoney(annualExpenses) + parseMoney(councilRates) + parseMoney(insurance);
+    localStorage.setItem("pc_analyser", JSON.stringify({
+      price: purchasePrice,
+      deposit,
+      rent: weeklyRent,
+      expenses: Math.round(totalExpenses).toLocaleString("en-AU"),
+      rate: interestRate,
+    }));
+  }, [purchasePrice, deposit, weeklyRent, annualExpenses, councilRates, insurance, interestRate]);
+
   return (
     <main
       className="min-h-screen"
@@ -204,7 +215,7 @@ export default function AppPage() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'linear-gradient(to top, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.1) 100%), url("/images/magnify.jpg")',
+              'linear-gradient(to top, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.1) 100%), url("/images/piggybank.jpg")',
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -243,7 +254,7 @@ export default function AppPage() {
           >
             <option value="/app">Property Analyser</option>
             <option value="/app/mortgage">Mortgage Calculator</option>
-            <option value="/app/yield">Rental Yield Calculator</option>
+            <option value="/app/yield">Yield Calculator</option>
             <option value="/app/cgt">Capital Gains Tax Estimator</option>
             <option value="/app/compare">Compare Properties</option>
           </select>
@@ -272,7 +283,11 @@ export default function AppPage() {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <p className="mt-4 rounded-xl px-3 py-2 text-xs" style={{ backgroundColor: "#EEF2FF", color: "#3D5A80" }}>
+                ⟳ These inputs sync live to Property A in Compare Properties
+              </p>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                   <label
                     className="mb-2 block text-sm font-medium"
@@ -307,7 +322,7 @@ export default function AppPage() {
                       type="text"
                       value={deposit}
                       onChange={(e) => handleMoneyChange(e, setDeposit)}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(3); } }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(4); } }}
                       tabIndex={2}
                       className="min-w-0 flex-1 bg-transparent outline-none"
                       style={{ color: "#0F172A" }}

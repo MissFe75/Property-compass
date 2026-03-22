@@ -1,7 +1,7 @@
 export default function ToolsPage() {
   const tools = [
     "Mortgage Calculator",
-    "Rental Yield Calculator",
+    "Yield Calculator",
     "Capital Gains Tax Calculator",
     "Break-even Calculator",
     "Property Comparison Tool",
