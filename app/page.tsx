@@ -66,115 +66,146 @@ export default function HomePage() {
       style={{ background: "linear-gradient(to bottom, #F5F0E8, #FFFFFF)", color: "#0F172A" }}
     >
 
-      {/* ── Hero card ── */}
-      <section className="mx-auto max-w-6xl px-6 pt-6 pb-4">
-        <div
-          className="rounded-[32px] border px-10 pt-8 pb-12 sm:px-14 sm:pt-10 sm:pb-16"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.76), rgba(250,247,242,0.96))",
-            borderColor: "#E7E0D6",
-            boxShadow: "0 16px 48px rgba(15,23,42,0.07)",
-          }}
-        >
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      {/* ── Sticky header ── */}
+      <header
+        className="sticky top-0 z-30 border-b backdrop-blur"
+        style={{ backgroundColor: "rgba(250,247,242,0.9)", borderColor: "#E7E0D6" }}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
 
-            {/* Left: logo + headline + CTA */}
-            <div className="flex flex-col justify-center gap-6">
-
-              {/* Logo block */}
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#556987"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                  </svg>
-                  <p
-                    className="text-2xl font-semibold tracking-tight sm:text-3xl"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Property Compass
-                  </p>
-                </div>
-                <p className="mt-1.5 text-sm" style={{ color: "#94A3B8" }}>
-                  Navigate your next property move
-                </p>
-              </div>
-
-              {/* Headline + body */}
-              <div className="space-y-3">
-                <h1
-                  className="text-4xl font-semibold leading-[1.15] tracking-tight sm:text-5xl"
-                  style={{ color: "#0F172A" }}
-                >
-                  Free tools for buying &amp; investing in Aussie property
-                </h1>
-                <p className="text-lg leading-7" style={{ color: "#4B5563" }}>
-                  Calculate mortgage repayments, yield, CGT and compare up to 3 properties — no spreadsheets required.
-                </p>
-              </div>
-
-              {/* CTA */}
-              <div className="pt-2">
-                <Link
-                  href="/app"
-                  className="inline-flex rounded-2xl px-7 py-4 text-base font-medium text-white transition hover:opacity-90"
-                  style={{ backgroundColor: "#3D5A80", boxShadow: "0 10px 24px rgba(61,90,128,0.25)" }}
-                >
-                  Launch free app →
-                </Link>
-              </div>
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="38"
+                height="38"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#556987"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+              </svg>
             </div>
+            <div>
+              <p className="text-lg font-semibold leading-none tracking-tight sm:text-2xl" style={{ color: "#314A6E" }}>
+                Property Compass
+              </p>
+              <p className="mt-1 text-xs" style={{ color: "#64748B" }}>
+                by Sextant Digital
+              </p>
+            </div>
+          </Link>
 
-            {/* Right: image */}
-            <div
-              className="overflow-hidden rounded-[28px] border"
-              style={{ borderColor: "#E7E0D6" }}
+          <nav className="flex items-center gap-3">
+            <a
+              href="#tools"
+              className="hidden rounded-2xl border px-5 py-2.5 text-sm font-medium transition hover:bg-white/70 sm:block"
+              style={{ borderColor: "#3D5A80", color: "#314A6E" }}
             >
-              <img
-                src="/hero-houses.jpg"
-                alt="Australian residential street"
-                className="h-full w-full object-cover"
-                style={{ maxHeight: "420px" }}
-              />
-            </div>
+              Features
+            </a>
+            <Link
+              href="/app"
+              className="rounded-2xl px-6 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+              style={{ backgroundColor: "#3D5A80", boxShadow: "0 4px 14px rgba(61,90,128,0.25)" }}
+            >
+              Launch App →
+            </Link>
+          </nav>
 
+        </div>
+      </header>
+
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to top, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.1) 100%), url("/hero-houses.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="relative mx-auto flex min-h-[420px] max-w-7xl items-end px-6 py-14 sm:px-8 md:min-h-[500px]">
+          <div className="max-w-2xl">
+            <p
+              className="text-sm font-semibold uppercase tracking-[0.22em]"
+              style={{ color: "rgba(255,255,255,0.75)" }}
+            >
+              Property Compass
+            </p>
+            <h1
+              className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
+            >
+              Navigate your next property move
+            </h1>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/app"
+                className="rounded-2xl px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                style={{ backgroundColor: "#3D5A80", boxShadow: "0 10px 24px rgba(61,90,128,0.3)" }}
+              >
+                Launch free app →
+              </Link>
+              <a
+                href="#tools"
+                className="rounded-2xl border px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+                style={{ borderColor: "rgba(255,255,255,0.6)", backgroundColor: "rgba(255,255,255,0.08)" }}
+              >
+                See the tools
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Features + example card ── */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 pb-10">
-        <div className="grid gap-8 lg:grid-cols-2">
+      {/* ── Intro + example card ── */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-14">
 
-          {/* Left: feature cards (2×2 grid) */}
-          <div className="grid grid-cols-2 content-start gap-4 lg:pt-2">
-            {features.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-3xl border bg-white p-6"
-                style={{ borderColor: "#E7E0D6", boxShadow: "0 4px 16px rgba(15,23,42,0.04)" }}
+          {/* Copy */}
+          <div>
+            <p
+              className="text-base font-semibold uppercase tracking-[0.22em]"
+              style={{ color: "#3D5A80" }}
+            >
+              Free property tools
+            </p>
+            <h2
+              className="mt-5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl"
+              style={{ color: "#0F172A" }}
+            >
+              Free tools for buying &amp; investing in Aussie property
+            </h2>
+            <p className="mt-6 text-lg leading-9" style={{ color: "#4B5563" }}>
+              A free app that calculates all things buying or investing in
+              Australian property — mortgage repayments, rental yield, capital
+              gains tax and more. No sign-up. No paywall. Just the numbers.
+            </p>
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/app"
+                className="rounded-2xl px-7 py-4 text-base font-medium text-white transition hover:opacity-90"
+                style={{ backgroundColor: "#3D5A80", boxShadow: "0 10px 24px rgba(61,90,128,0.2)" }}
               >
-                <p className="text-base font-semibold" style={{ color: "#0F172A" }}>
-                  {f.title}
-                </p>
-                <p className="mt-2 text-sm leading-6" style={{ color: "#64748B" }}>
-                  {f.description}
-                </p>
-              </div>
-            ))}
+                Launch free app →
+              </Link>
+              <a
+                href="#tools"
+                className="rounded-2xl border px-7 py-4 text-base font-medium transition hover:bg-white"
+                style={{ borderColor: "#E7E0D6", color: "#314A6E" }}
+              >
+                See the tools
+              </a>
+            </div>
           </div>
 
-          {/* Right: example analysis card */}
+          {/* Example analysis card */}
           <div
             className="rounded-[32px] border p-8"
             style={{
@@ -232,26 +263,50 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Features strip ── */}
+      <section
+        className="border-y py-16"
+        style={{ borderColor: "#E7E0D6", backgroundColor: "rgba(250,247,242,0.7)" }}
+      >
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="rounded-3xl border bg-white p-6"
+                style={{ borderColor: "#E7E0D6", boxShadow: "0 4px 16px rgba(15,23,42,0.04)" }}
+              >
+                <p className="text-base font-semibold" style={{ color: "#0F172A" }}>
+                  {f.title}
+                </p>
+                <p className="mt-2 text-sm leading-6" style={{ color: "#64748B" }}>
+                  {f.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Tools section ── */}
-      <section id="tools" className="mx-auto max-w-6xl px-6 pt-4 pb-20">
+      <section id="tools" className="mx-auto max-w-6xl px-6 py-16">
         <p
-          className="text-sm font-semibold uppercase tracking-[0.22em]"
+          className="text-base font-semibold uppercase tracking-[0.22em]"
           style={{ color: "#3D5A80" }}
         >
           The toolkit
         </p>
         <h2
-          className="mt-3 max-w-2xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl"
+          className="mt-5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl"
           style={{ color: "#0F172A" }}
         >
           Everything you need to analyse Aussie property
         </h2>
-        <p className="mt-4 max-w-xl text-lg leading-8" style={{ color: "#4B5563" }}>
-          Five purpose-built calculators in one app — all free, all instant, no
-          spreadsheets required.
+        <p className="mt-6 max-w-2xl text-lg leading-9" style={{ color: "#4B5563" }}>
+          Five purpose-built calculators in one app — all free, all instant.
         </p>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => (
             <Link
               key={tool.title}

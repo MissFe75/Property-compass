@@ -10,14 +10,14 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl">
 
         {/* Brand: icon stacked above name */}
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-row items-center gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
             height="22"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#5A7A9A"
+            stroke="#FFFFFF"
             strokeWidth="1.75"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -34,23 +34,37 @@ export default function Footer() {
         {/* Three-column info row */}
         <div
           className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between"
-          style={{ color: "#7A93AA" }}
+          style={{ color: "#A8BFD0" }}
         >
           <p>© 2026 Sextant Digital. All rights reserved.</p>
-          <p>Built for Australian property investors 🇦🇺</p>
+          <p>Built for Aussies</p>
           <a
             href="mailto:hello@sextantdigital.com.au"
             className="transition-colors hover:text-slate-300"
-            style={{ color: "#7A93AA" }}
+            style={{ color: "#A8BFD0" }}
           >
             hello@sextantdigital.com.au
           </a>
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-4 text-xs leading-relaxed" style={{ color: "#6E8A9E" }}>
-          <p>This app provides general information only and does not constitute financial, tax, or legal advice.</p>
-          <p className="mt-1">Calculations are estimates — always consult a qualified adviser before making investment decisions.</p>
+        <div className="mt-4 flex items-center justify-between text-xs leading-relaxed" style={{ color: "#94AEBF" }}>
+          <span>This app provides general information only and does not constitute financial, tax, or legal advice.</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#94AEBF"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+          </svg>
+          <span>Calculations are estimates — always consult a qualified adviser before making investment decisions.</span>
         </div>
 
       </div>

@@ -63,3 +63,22 @@ Next session plan:
 Important:
 - Do NOT add filler content (no extra images)
 - Fix layout, not symptoms
+SESSION FLOW
+
+1. Terminal:
+git add .
+git commit -m "Backup before restoring landing page"
+
+2. Claude:
+Paste landing page restore prompt to rebuild homepage only
+
+3. Terminal:
+npm run dev
+
+4. Check in browser:
+Confirm landing page matches original design
+
+Rules:
+- Terminal = commands
+- Claude = code changes
+- Never paste instructions into the wrong place
