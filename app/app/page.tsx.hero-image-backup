@@ -1,0 +1,586 @@
+"use client";
+
+import { useState } from "react";
+
+type Results = {
+  monthlyRepayment: number;
+  grossYield: number;
+  netYield: number;
+  weeklyCashflow: number;
+};
+
+function parseMoney(value: string): number {
+  return Number(value.replace(/[^0-9.-]/g, "")) || 0;
+}
+
+function parsePercent(value: string): number {
+  return Number(value.replace(/[^0-9.-]/g, "")) || 0;
+}
+
+function formatMoney(value: number): string {
+  const rounded = Math.round(value);
+  const sign = rounded < 0 ? "-" : "";
+  return `${sign}$${Math.abs(rounded).toLocaleString()}`;
+}
+
+function formatPercent(value: number): string {
+  return `${value.toFixed(2)}%`;
+}
+
+function calculateMonthlyRepayment(
+  loanAmount: number,
+  annualRatePercent: number,
+  loanTermYears: number,
+  repaymentType: string
+): number {
+  const monthlyRate = annualRatePercent / 100 / 12;
+  const months = loanTermYears * 12;
+
+  if (loanAmount <= 0) return 0;
+  if (months <= 0) return 0;
+
+  if (repaymentType === "Interest Only") {
+    return loanAmount * monthlyRate;
+  }
+
+  if (monthlyRate === 0) {
+    return loanAmount / months;
+  }
+
+  return (
+    (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+    (Math.pow(1 + monthlyRate, months) - 1)
+  );
+}
+
+export default function AppPage() {
+  const [purchasePrice, setPurchasePrice] = useState("$650,000");
+  const [deposit, setDeposit] = useState("$130,000");
+  const [stampDuty, setStampDuty] = useState("$22,000");
+  const [buyingCosts, setBuyingCosts] = useState("$3,500");
+
+  const [interestRate, setInterestRate] = useState("6.25");
+  const [loanTerm, setLoanTerm] = useState("30");
+  const [loanAmount, setLoanAmount] = useState("$520,000");
+  const [repaymentType, setRepaymentType] = useState("Principal & Interest");
+
+  const [weeklyRent, setWeeklyRent] = useState("$620");
+  const [annualExpenses, setAnnualExpenses] = useState("$8,500");
+  const [vacancyRate, setVacancyRate] = useState("2");
+  const [propertyManagement, setPropertyManagement] = useState("7");
+  const [councilRates, setCouncilRates] = useState("$2,400");
+  const [insurance, setInsurance] = useState("$1,200");
+
+  const [results, setResults] = useState<Results>({
+    monthlyRepayment: 3204,
+    grossYield: 4.96,
+    netYield: 3.88,
+    weeklyCashflow: -74,
+  });
+
+  function handleCalculate() {
+    const purchase = parseMoney(purchasePrice);
+    const rentPerWeek = parseMoney(weeklyRent);
+    const otherAnnualExpenses = parseMoney(annualExpenses);
+    const council = parseMoney(councilRates);
+    const insure = parseMoney(insurance);
+
+    const rate = parsePercent(interestRate);
+    const termYears = parseMoney(loanTerm);
+    const loan = parseMoney(loanAmount);
+
+    const vacancyPercent = parsePercent(vacancyRate);
+    const managementPercent = parsePercent(propertyManagement);
+
+    const annualRent = rentPerWeek * 52;
+    const vacancyCost = annualRent * (vacancyPercent / 100);
+    const managementCost = annualRent * (managementPercent / 100);
+
+    const monthlyRepayment = calculateMonthlyRepayment(
+      loan,
+      rate,
+      termYears,
+      repaymentType
+    );
+
+    const annualRepayments = monthlyRepayment * 12;
+
+    const annualNetIncomeBeforeFinance =
+      annualRent -
+      vacancyCost -
+      managementCost -
+      otherAnnualExpenses -
+      council -
+      insure;
+
+    const grossYield = purchase > 0 ? (annualRent / purchase) * 100 : 0;
+    const netYield =
+      purchase > 0 ? (annualNetIncomeBeforeFinance / purchase) * 100 : 0;
+
+    const weeklyCashflow = (annualNetIncomeBeforeFinance - annualRepayments) / 52;
+
+    setResults({
+      monthlyRepayment,
+      grossYield,
+      netYield,
+      weeklyCashflow,
+    });
+  }
+
+  return (
+    <main
+      className="min-h-screen px-6 py-10"
+      style={{ background: "linear-gradient(to bottom, #F5F0E8, #FFFFFF)" }}
+    >
+      <div className="mx-auto max-w-6xl">
+        <div
+          className="mb-10 rounded-[32px] border p-6 sm:p-8"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.76), rgba(250,247,242,0.96))",
+            borderColor: "#E7E0D6",
+            boxShadow: "0 12px 40px rgba(15, 23, 42, 0.05)",
+          }}
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="34"
+                height="34"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#556987"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+              </svg>
+            </div>
+
+            <div className="min-w-0">
+              <p
+                className="text-sm font-semibold uppercase tracking-[0.22em]"
+                style={{ color: "#3D5A80" }}
+              >
+                Property Compass
+              </p>
+
+              <h1
+                className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
+                style={{ color: "#0F172A" }}
+              >
+                Property Analyser
+              </h1>
+
+              <p
+                className="mt-3 max-w-3xl text-base leading-7 sm:text-lg"
+                style={{ color: "#64748B" }}
+              >
+                Analyse a property deal with clean inputs and useful results at a glance.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <section className="space-y-6">
+            <div
+              className="rounded-3xl border p-6 shadow-sm"
+              style={{
+                backgroundColor: "#FAF7F2",
+                borderColor: "#E7E0D6",
+              }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2
+                    className="text-xl font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    Purchase Details
+                  </h2>
+                  <p className="mt-2 text-sm" style={{ color: "#64748B" }}>
+                    Start with the upfront purchase numbers.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Purchase price
+                  </label>
+                  <input
+                    type="text"
+                    value={purchasePrice}
+                    onChange={(e) => setPurchasePrice(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Deposit
+                  </label>
+                  <input
+                    type="text"
+                    value={deposit}
+                    onChange={(e) => setDeposit(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Stamp duty
+                  </label>
+                  <input
+                    type="text"
+                    value={stampDuty}
+                    onChange={(e) => setStampDuty(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Buying costs
+                  </label>
+                  <input
+                    type="text"
+                    value={buyingCosts}
+                    onChange={(e) => setBuyingCosts(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="rounded-3xl border p-6 shadow-sm"
+              style={{
+                backgroundColor: "#FAF7F2",
+                borderColor: "#E7E0D6",
+              }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2
+                    className="text-xl font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    Loan Details
+                  </h2>
+                  <p className="mt-2 text-sm" style={{ color: "#64748B" }}>
+                    Set the core loan settings for the deal.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Interest rate (%)
+                  </label>
+                  <input
+                    type="text"
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Loan term (years)
+                  </label>
+                  <input
+                    type="text"
+                    value={loanTerm}
+                    onChange={(e) => setLoanTerm(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Loan amount
+                  </label>
+                  <input
+                    type="text"
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Repayment type
+                  </label>
+                  <select
+                    value={repaymentType}
+                    onChange={(e) => setRepaymentType(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  >
+                    <option>Principal & Interest</option>
+                    <option>Interest Only</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="rounded-3xl border p-6 shadow-sm"
+              style={{
+                backgroundColor: "#FAF7F2",
+                borderColor: "#E7E0D6",
+              }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2
+                    className="text-xl font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    Income & Costs
+                  </h2>
+                  <p className="mt-2 text-sm" style={{ color: "#64748B" }}>
+                    Add rent and the ongoing holding costs.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Weekly rent
+                  </label>
+                  <input
+                    type="text"
+                    value={weeklyRent}
+                    onChange={(e) => setWeeklyRent(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Annual expenses
+                  </label>
+                  <input
+                    type="text"
+                    value={annualExpenses}
+                    onChange={(e) => setAnnualExpenses(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Vacancy rate (%)
+                  </label>
+                  <input
+                    type="text"
+                    value={vacancyRate}
+                    onChange={(e) => setVacancyRate(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Property management (%)
+                  </label>
+                  <input
+                    type="text"
+                    value={propertyManagement}
+                    onChange={(e) => setPropertyManagement(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Council rates
+                  </label>
+                  <input
+                    type="text"
+                    value={councilRates}
+                    onChange={(e) => setCouncilRates(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Insurance
+                  </label>
+                  <input
+                    type="text"
+                    value={insurance}
+                    onChange={(e) => setInsurance(e.target.value)}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside
+            className="rounded-3xl border p-6 shadow-sm lg:sticky lg:top-8 lg:self-start"
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderColor: "#E7E0D6",
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p
+                  className="text-sm font-semibold uppercase tracking-[0.18em]"
+                  style={{ color: "#3D5A80" }}
+                >
+                  Results
+                </p>
+                <h2
+                  className="mt-2 text-2xl font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  Results snapshot
+                </h2>
+              </div>
+
+              <button
+                onClick={handleCalculate}
+                className="rounded-full px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                style={{ backgroundColor: "#3D5A80" }}
+              >
+                Calculate
+              </button>
+            </div>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <div
+                className="rounded-2xl border p-5"
+                style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
+              >
+                <p className="text-sm" style={{ color: "#64748B" }}>
+                  Monthly repayment
+                </p>
+                <p
+                  className="mt-2 text-3xl font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  {formatMoney(results.monthlyRepayment)}
+                </p>
+              </div>
+
+              <div
+                className="rounded-2xl border p-5"
+                style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
+              >
+                <p className="text-sm" style={{ color: "#64748B" }}>
+                  Gross yield
+                </p>
+                <p
+                  className="mt-2 text-3xl font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  {formatPercent(results.grossYield)}
+                </p>
+              </div>
+
+              <div
+                className="rounded-2xl border p-5"
+                style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
+              >
+                <p className="text-sm" style={{ color: "#64748B" }}>
+                  Net yield
+                </p>
+                <p
+                  className="mt-2 text-3xl font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  {formatPercent(results.netYield)}
+                </p>
+              </div>
+
+              <div
+                className="rounded-2xl border p-5"
+                style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
+              >
+                <p className="text-sm" style={{ color: "#64748B" }}>
+                  Weekly cashflow
+                </p>
+                <p
+                  className="mt-2 text-3xl font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  {formatMoney(results.weeklyCashflow)}
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
