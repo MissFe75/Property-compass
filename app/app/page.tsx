@@ -92,7 +92,11 @@ export default function AppPage() {
   const router = useRouter();
   const [purchasePrice, setPurchasePrice] = useState("650,000");
   const [deposit, setDeposit] = useState("130,000");
-  const [buyingCosts, setBuyingCosts] = useState("3,500");
+  const [conveyancer, setConveyancer] = useState("1,800");
+  const [buildingPest, setBuildingPest] = useState("600");
+  const [buyerAgent, setBuyerAgent] = useState("0");
+  const [loanFee, setLoanFee] = useState("400");
+  const [titleInsurance, setTitleInsurance] = useState("300");
 
   const [interestRate, setInterestRate] = useState("6.25");
   const [loanTerm, setLoanTerm] = useState("30");
@@ -107,8 +111,15 @@ export default function AppPage() {
 
   const currentPurchase = parseMoney(purchasePrice);
   const currentStampDuty = calculateEstimatedStampDuty(currentPurchase);
+  const currentBuyingCosts =
+    parseMoney(conveyancer) +
+    parseMoney(buildingPest) +
+    parseMoney(buyerAgent) +
+    parseMoney(loanFee) +
+    parseMoney(titleInsurance);
+
   const currentLoanAmount =
-    currentPurchase + currentStampDuty + parseMoney(buyingCosts) - parseMoney(deposit);
+    currentPurchase + currentStampDuty + currentBuyingCosts - parseMoney(deposit);
 
   const currentAnnualRent = parseMoney(weeklyRent) * 52;
   const currentVacancyCost = currentAnnualRent * (parsePercent(vacancyRate) / 100);
@@ -134,73 +145,91 @@ export default function AppPage() {
 
   return (
     <main
-      className="min-h-screen px-6 py-10"
+      className="min-h-screen"
       style={{ background: "linear-gradient(to bottom, #F5F0E8, #FFFFFF)" }}
     >
-      <div className="mx-auto max-w-6xl">
-        <div
-          className="mb-10 rounded-[32px] border p-6 sm:p-8"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.76), rgba(250,247,242,0.96))",
-            borderColor: "#E7E0D6",
-            boxShadow: "0 12px 40px rgba(15, 23, 42, 0.05)",
-          }}
-        >
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-            <div className="min-w-0">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="flex shrink-0 items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="46"
-                    height="46"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#556987"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                  </svg>
-                </div>
-                <p
-                  className="text-xl font-semibold tracking-tight sm:text-2xl"
-                  style={{ color: "#3D5A80" }}
-                >
-                  Property Compass
-                </p>
-              </div>
 
-              <h1
-                className="text-3xl font-semibold tracking-tight sm:text-4xl"
-                style={{ color: "#0F172A" }}
-              >
-                Property Analyser
-              </h1>
-
-              <p
-                className="mt-3 max-w-3xl text-base leading-7 sm:text-lg"
-                style={{ color: "#64748B" }}
-              >
-                Analyse a property deal with clean inputs and useful results at a glance.
+      {/* ── Sticky header ── */}
+      <header
+        className="sticky top-0 z-30 border-b backdrop-blur"
+        style={{ backgroundColor: "rgba(250,247,242,0.9)", borderColor: "#E7E0D6" }}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="38"
+              height="38"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#556987"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
+            <div>
+              <p className="text-lg font-semibold leading-none tracking-tight sm:text-2xl" style={{ color: "#314A6E" }}>
+                Property Compass
+              </p>
+              <p className="mt-1 text-xs" style={{ color: "#64748B" }}>
+                by Sextant Digital
               </p>
             </div>
-
-            <div
-              className="overflow-hidden rounded-[28px] border"
-              style={{ borderColor: "#E7E0D6" }}
+          </div>
+          <nav className="flex items-center gap-3">
+            <a
+              href="/#tools"
+              className="hidden rounded-2xl border px-5 py-2.5 text-sm font-medium transition hover:bg-white/70 sm:block"
+              style={{ borderColor: "#3D5A80", color: "#314A6E" }}
             >
-              <img
-                src="/images/piggybank.jpg"
-                alt="Piggy bank representing property saving goals"
-                className="h-56 w-full object-cover"
-              />
-            </div>
+              All tools
+            </a>
+            <a
+              href="/"
+              className="rounded-2xl px-6 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+              style={{ backgroundColor: "#3D5A80", boxShadow: "0 4px 14px rgba(61,90,128,0.25)" }}
+            >
+              ← Home
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to top, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.1) 100%), url("/images/magnify.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="relative mx-auto flex min-h-[420px] max-w-7xl items-end px-6 pt-14 pb-24 sm:px-8 md:min-h-[500px]">
+          <div className="max-w-2xl">
+            <p
+              className="text-sm font-semibold uppercase tracking-[0.22em]"
+              style={{ color: "rgba(255,255,255,0.75)" }}
+            >
+              Property Compass
+            </p>
+            <h1
+              className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
+            >
+              Property Analyser
+            </h1>
+            <p className="mt-3 text-base text-white/75 sm:text-lg">
+              Analyse a property deal with clean inputs and useful results at a glance.
+            </p>
           </div>
         </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6 py-10">
 
         <div className="mb-8">
           <p className="mb-3 text-sm font-medium" style={{ color: "#64748B" }}>
@@ -308,23 +337,38 @@ export default function AppPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
+                  <p className="mb-3 text-sm font-medium" style={{ color: "#3D5A80" }}>
                     Buying costs
-                  </label>
-                  <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
-                    <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
-                    <input
-                      type="text"
-                      value={buyingCosts}
-                      onChange={(e) => handleMoneyChange(e, setBuyingCosts)}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(4); } }}
-                      tabIndex={3}
-                      className="min-w-0 flex-1 bg-transparent outline-none"
-                      style={{ color: "#0F172A" }}
-                    />
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Conveyancer / Solicitor", value: conveyancer, setter: setConveyancer },
+                      { label: "Building & pest inspection", value: buildingPest, setter: setBuildingPest },
+                      { label: "Buyer's agent fee", value: buyerAgent, setter: setBuyerAgent },
+                      { label: "Loan establishment fee", value: loanFee, setter: setLoanFee },
+                      { label: "Title insurance", value: titleInsurance, setter: setTitleInsurance },
+                    ].map(({ label, value, setter }) => (
+                      <div key={label}>
+                        <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>{label}</label>
+                        <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                          <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => handleMoneyChange(e, setter)}
+                            tabIndex={-1}
+                            className="min-w-0 flex-1 bg-transparent outline-none text-sm"
+                            style={{ color: "#0F172A" }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                      <p className="text-xs" style={{ color: "#64748B" }}>Total buying costs</p>
+                      <p className="mt-1 text-base font-semibold" style={{ color: "#0F172A" }}>
+                        {formatMoney(currentBuyingCosts)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

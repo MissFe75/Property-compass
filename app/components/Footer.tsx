@@ -33,14 +33,14 @@ export default function Footer() {
 
         {/* Three-column info row */}
         <div
-          className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+          className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-sm"
           style={{ color: "#A8BFD0" }}
         >
           <p>© 2026 Sextant Digital. All rights reserved.</p>
           <p>Built for Aussies</p>
           <a
             href="mailto:hello@sextantdigital.com.au"
-            className="transition-colors hover:text-slate-300"
+            className="text-right transition-colors hover:text-slate-300"
             style={{ color: "#A8BFD0" }}
           >
             hello@sextantdigital.com.au
@@ -48,8 +48,8 @@ export default function Footer() {
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-4 flex items-center justify-between text-xs leading-relaxed" style={{ color: "#94AEBF" }}>
-          <span>This app provides general information only and does not constitute financial, tax, or legal advice.</span>
+        <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-start gap-4 text-xs leading-relaxed" style={{ color: "#94AEBF" }}>
+          <span className="text-center">This app provides general information only and does not constitute financial, tax, or legal advice.</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="12"
@@ -57,6 +57,7 @@ export default function Footer() {
             viewBox="0 0 24 24"
             fill="none"
             stroke="#94AEBF"
+            className="mt-1"
             strokeWidth="1.75"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -64,7 +65,7 @@ export default function Footer() {
             <circle cx="12" cy="12" r="10" />
             <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
           </svg>
-          <span>Calculations are estimates — always consult a qualified adviser before making investment decisions.</span>
+          <span className="text-center">Calculations are estimates — always consult a qualified adviser before making investment decisions.</span>
         </div>
 
       </div>

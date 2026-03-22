@@ -7,62 +7,84 @@ export default function YieldPage() {
 
   return (
     <main
-      className="min-h-screen px-6 py-10"
+      className="min-h-screen"
       style={{ background: "linear-gradient(to bottom, #F5F0E8, #FFFFFF)" }}
     >
-      <div className="mx-auto max-w-6xl">
 
-        {/* Hero card */}
-        <div
-          className="mb-8 rounded-[32px] border p-6 sm:p-8"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.76), rgba(250,247,242,0.96))",
-            borderColor: "#E7E0D6",
-            boxShadow: "0 12px 40px rgba(15, 23, 42, 0.05)",
-          }}
-        >
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="34"
-                height="34"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#556987"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-              </svg>
-            </div>
-
-            <div className="min-w-0">
-              <p
-                className="text-sm font-semibold uppercase tracking-[0.22em]"
-                style={{ color: "#3D5A80" }}
-              >
+      {/* ── Sticky header ── */}
+      <header
+        className="sticky top-0 z-30 border-b backdrop-blur"
+        style={{ backgroundColor: "rgba(250,247,242,0.9)", borderColor: "#E7E0D6" }}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="38"
+              height="38"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#556987"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
+            <div>
+              <p className="text-lg font-semibold leading-none tracking-tight sm:text-2xl" style={{ color: "#314A6E" }}>
                 Property Compass
               </p>
-
-              <h1
-                className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
-                style={{ color: "#0F172A" }}
-              >
-                Rental Yield Calculator
-              </h1>
-
-              <p
-                className="mt-3 max-w-3xl text-base leading-7 sm:text-lg"
-                style={{ color: "#64748B" }}
-              >
-                Estimate gross and net rental yield, vacancy impact, and ongoing property costs.
-              </p>
+              <p className="mt-1 text-xs" style={{ color: "#64748B" }}>by Sextant Digital</p>
             </div>
           </div>
+          <nav className="flex items-center gap-3">
+            <a
+              href="/#tools"
+              className="hidden rounded-2xl border px-5 py-2.5 text-sm font-medium transition hover:bg-white/70 sm:block"
+              style={{ borderColor: "#3D5A80", color: "#314A6E" }}
+            >
+              All tools
+            </a>
+            <a
+              href="/"
+              className="rounded-2xl px-6 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+              style={{ backgroundColor: "#3D5A80", boxShadow: "0 4px 14px rgba(61,90,128,0.25)" }}
+            >
+              ← Home
+            </a>
+          </nav>
         </div>
+      </header>
+
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to top, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.25) 55%, rgba(15,23,42,0.1) 100%), url("/images/house%20in%20hand.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="relative mx-auto flex min-h-[420px] max-w-7xl items-end px-6 pt-14 pb-24 sm:px-8 md:min-h-[500px]">
+          <div className="max-w-2xl">
+            <p
+              className="text-sm font-semibold uppercase tracking-[0.22em]"
+              style={{ color: "rgba(255,255,255,0.75)" }}
+            >
+              Property Compass
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+              Rental Yield Calculator
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6 py-10">
 
         {/* Calculator switcher */}
         <div className="mb-8">
@@ -88,16 +110,10 @@ export default function YieldPage() {
           className="rounded-3xl border p-8 shadow-sm"
           style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
         >
-          <p
-            className="text-sm font-semibold uppercase tracking-[0.18em]"
-            style={{ color: "#3D5A80" }}
-          >
+          <p className="text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: "#3D5A80" }}>
             Coming next
           </p>
-          <h2
-            className="mt-2 text-2xl font-semibold"
-            style={{ color: "#0F172A" }}
-          >
+          <h2 className="mt-2 text-2xl font-semibold" style={{ color: "#0F172A" }}>
             Rental Yield Calculator
           </h2>
           <p className="mt-3 text-base" style={{ color: "#64748B" }}>
