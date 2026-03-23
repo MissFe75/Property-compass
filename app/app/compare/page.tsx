@@ -135,18 +135,21 @@ export default function ComparePage() {
   const [nameB, setNameB] = useState("Property B");
   const [nameC, setNameC] = useState("Property C");
 
-  const [repaymentFreq, setRepaymentFreq] = useState("Monthly");
-  const [cashflowFreq, setCashflowFreq] = useState("Weekly");
+  const [displayFreq, setDisplayFreq] = useState("Monthly");
 
   useEffect(() => {
     function syncFromAnalyser() {
       try {
         const saved = localStorage.getItem("pc_analyser");
         if (!saved) return;
-        const { price, deposit, rent, expenses, rate } = JSON.parse(saved);
+        const { price, deposit, rent, rentFreq, expenses, rate } = JSON.parse(saved);
         if (price) a.setPrice(price);
         if (deposit) a.setDeposit(deposit);
-        if (rent) a.setRent(rent);
+        if (rent) {
+          const mult = rentFreq === "Fortnightly" ? 26 : rentFreq === "Monthly" ? 12 : rentFreq === "Yearly" ? 1 : 52;
+          const weekly = Math.round(parseMoney(rent) * mult / 52);
+          a.setRent(weekly.toLocaleString("en-AU"));
+        }
         if (expenses) a.setExpenses(expenses);
         if (rate) a.setRate(rate);
       } catch {}
@@ -157,14 +160,14 @@ export default function ComparePage() {
   }, []);
 
   function repaymentForFreq(monthly: number): number {
-    if (repaymentFreq === "Weekly") return monthly * 12 / 52;
-    if (repaymentFreq === "Fortnightly") return monthly * 12 / 26;
+    if (displayFreq === "Weekly") return monthly * 12 / 52;
+    if (displayFreq === "Fortnightly") return monthly * 12 / 26;
     return monthly;
   }
 
   function cashflowForFreq(weeklyCashflow: number): number {
-    if (cashflowFreq === "Weekly") return weeklyCashflow;
-    if (cashflowFreq === "Fortnightly") return weeklyCashflow * 2;
+    if (displayFreq === "Weekly") return weeklyCashflow;
+    if (displayFreq === "Fortnightly") return weeklyCashflow * 2;
     return weeklyCashflow * (52 / 12);
   }
 
@@ -215,10 +218,17 @@ export default function ComparePage() {
     },
     {
       rowKey: "repayment",
-      label: `${repaymentFreq} repayment`,
+      label: `${displayFreq} repayment`,
       info: null,
       values: repaymentDisplays.map(formatMoney),
       colors: monthlies.map(v => relativeColor(v, monthlies, false)),
+    },
+    {
+      rowKey: "cashflow",
+      label: `${displayFreq} cashflow`,
+      info: "Cash left over each period after mortgage repayments and expenses. Positive = property pays you; negative = you top it up.",
+      values: cashflowDisplays.map(formatMoney),
+      colors: weeklyCashflows.map(v => v > 50 ? "#49A078" : v > -10 ? "#D4A373" : "#E53E3E"),
     },
     {
       rowKey: "grossYield",
@@ -233,13 +243,6 @@ export default function ComparePage() {
       info: "Net income after expenses ÷ purchase price. A more realistic picture of your actual return.",
       values: netYields.map(formatPercent),
       colors: netYields.map(v => v >= 5 ? "#49A078" : v >= 3 ? "#D4A373" : "#E53E3E"),
-    },
-    {
-      rowKey: "cashflow",
-      label: `${cashflowFreq} cashflow`,
-      info: "Cash left over each period after mortgage repayments and expenses. Positive = property pays you; negative = you top it up.",
-      values: cashflowDisplays.map(formatMoney),
-      colors: weeklyCashflows.map(v => v > 50 ? "#49A078" : v > -10 ? "#D4A373" : "#E53E3E"),
     },
   ];
 
@@ -309,11 +312,9 @@ export default function ComparePage() {
                   style={{ color: "#0F172A" }}
                 />
               </div>
-              {index === 0 && (
-                <p className="mb-4 rounded-xl px-3 py-2 text-xs" style={{ backgroundColor: "#EEF2FF", color: "#3D5A80" }}>
-                  ⟳ Live sync from Property Analyser
-                </p>
-              )}
+              <p className="mb-4 rounded-xl px-3 py-2 text-xs" style={{ backgroundColor: "#EEF2FF", color: "#3D5A80", visibility: index === 0 ? "visible" : "hidden" }}>
+                ⟳ Live sync from Property Analyser
+              </p>
               <div className="space-y-4">
                 {inputField("Purchase price", p.price, p.setPrice, true, "", index * 5 + 1)}
                 {inputField("Deposit", p.deposit, p.setDeposit, true, "", index * 5 + 2)}
@@ -327,49 +328,43 @@ export default function ComparePage() {
 
         {/* ── Comparison results ── */}
         <div className="mt-8 rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
-          <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Side by side</h2>
-          <p className="mt-2 text-sm" style={{ color: "#64748B" }}>Updates live as you type.</p>
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <h2 className="mb-1 text-xl font-semibold" style={{ color: "#0F172A" }}>Side by side</h2>
+              <p className="text-sm" style={{ color: "#64748B" }}>Updates live as you type.</p>
+            </div>
+            <FreqToggle options={["Weekly", "Fortnightly", "Monthly"]} value={displayFreq} onChange={setDisplayFreq} />
+          </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="pb-3 text-left font-medium" style={{ color: "#64748B" }}></th>
-                  <th className="pb-3 text-right font-semibold" style={{ color: "#3D5A80" }}>{nameA}</th>
-                  <th className="pb-3 text-right font-semibold" style={{ color: "#49A078" }}>{nameB}</th>
-                  <th className="pb-3 text-right font-semibold" style={{ color: "#D4A373" }}>{nameC}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y" style={{ borderColor: "#E7E0D6" }}>
-                {metrics.map(({ rowKey, label, info, values, colors }) => (
-                  <tr key={rowKey}>
-                    <td className="py-3 align-middle" style={{ color: "#64748B" }}>
-                      <span className="flex flex-wrap items-center gap-1.5">
-                        <span>{label}</span>
-                        {info && <InfoTip text={info} />}
-                        {rowKey === "repayment" && (
-                          <FreqToggle
-                            options={["Weekly", "Fortnightly", "Monthly"]}
-                            value={repaymentFreq}
-                            onChange={setRepaymentFreq}
-                          />
-                        )}
-                        {rowKey === "cashflow" && (
-                          <FreqToggle
-                            options={["Weekly", "Fortnightly", "Monthly"]}
-                            value={cashflowFreq}
-                            onChange={setCashflowFreq}
-                          />
-                        )}
-                      </span>
-                    </td>
-                    {values.map((val, i) => (
-                      <td key={i} className="py-3 text-right font-semibold" style={{ color: colors[i] }}>{val}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Property name header */}
+          <div className="mb-1 grid grid-cols-3 gap-6 border-b pb-3" style={{ borderColor: "#E7E0D6" }}>
+            {[
+              { name: nameA, accent: "#3D5A80" },
+              { name: nameB, accent: "#49A078" },
+              { name: nameC, accent: "#D4A373" },
+            ].map(({ name, accent }) => (
+              <div key={name} className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accent }} />
+                <span className="text-sm font-semibold" style={{ color: accent }}>{name}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Metric rows */}
+          <div className="divide-y" style={{ borderColor: "#E7E0D6" }}>
+            {metrics.map(({ rowKey, label, info, values, colors }) => (
+              <div key={rowKey} className="py-3">
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-medium" style={{ color: "#64748B" }}>
+                  <span>{label}</span>
+                  {info && <InfoTip text={info} />}
+                </div>
+                <div className="grid grid-cols-3 gap-6">
+                  {values.map((val, i) => (
+                    <div key={i} className="text-base font-bold" style={{ color: colors[i] }}>{val}</div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

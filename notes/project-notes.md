@@ -298,3 +298,46 @@ Next steps:
 
 Principle going forward:
 Fix layout issues at the structure level — do not patch with extra content.
+
+---
+
+### March 22, 2026 — Calculator overhaul
+
+**Compare Properties**
+- Expanded from 2 to 3 properties (A/B/C) with editable names and accent colours
+- Added green/amber/red colour coding to all comparison table rows
+  - Relative ranking (best/middle/worst) for loan amount and repayments
+  - Absolute thresholds for gross yield, net yield, and cashflow
+- Added Weekly/Fortnightly/Monthly frequency toggle on the repayment row
+- Added Weekly/Fortnightly/Monthly frequency toggle on the cashflow row
+- Added hover info (?) tooltips on gross yield, net yield, and cashflow rows
+- Fixed tooltip positioning so they don't clip off screen edge
+- Property A live-syncs from Property Analyser via localStorage (reads on mount + storage event)
+- Info banners added to both pages explaining the sync
+
+**Mortgage Calculator**
+- Added Investment / Owner Occupier toggle
+- Added repayment frequency selector (Weekly/Fortnightly/Monthly) — moved to below the toggle
+- Added Pay Off Sooner section: extra repayment amount + frequency, calculates years and interest saved
+- After-tax cost card shown for Investment loans
+- Extra repayment input resized to 2-column grid to match other fields
+
+**Yield Calculator**
+- Expanded expenses into individual fields: landlord insurance, council rates, water rates, maintenance, strata
+- Frequency selectors on rent input, expense inputs, and results panel
+- Total expenses tile styled to match results cards
+
+**CGT Calculator**
+- Added salary field for accurate ATO bracket-based CGT calculation
+- Uses `tax(salary + gain) − tax(salary)` method across 2024–25 brackets
+- Shows effective rate and bracket push warning in results
+
+**All calculators**
+- Tab and Enter key navigation between all data entry fields
+- Auto-calc display fields excluded from tab order
+
+**Property Analyser**
+- Hero image updated to piggybank.jpg
+- Inputs auto-save to localStorage on every change (syncing to Compare Property A)
+
+**Committed and pushed to:** `MissFe75/property-compass` on GitHub

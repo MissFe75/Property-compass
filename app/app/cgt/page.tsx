@@ -38,6 +38,70 @@ function handleMoneyChange(
   });
 }
 
+function calculateEstimatedStampDuty(purchasePrice: number, state: string): number {
+  if (purchasePrice <= 0) return 0;
+  const p = purchasePrice;
+  switch (state) {
+    case "QLD":
+      if (p <= 5000) return p * 0.015;
+      if (p <= 75000) return 75 + (p - 5000) * 0.035;
+      if (p <= 540000) return 2450 + (p - 75000) * 0.035;
+      if (p <= 1000000) return 18725 + (p - 540000) * 0.045;
+      return 39425 + (p - 1000000) * 0.0575;
+    case "NSW":
+      if (p <= 14000) return p * 0.0125;
+      if (p <= 30000) return 175 + (p - 14000) * 0.015;
+      if (p <= 80000) return 415 + (p - 30000) * 0.0175;
+      if (p <= 300000) return 1290 + (p - 80000) * 0.035;
+      if (p <= 1000000) return 8990 + (p - 300000) * 0.045;
+      if (p <= 3000000) return 40490 + (p - 1000000) * 0.055;
+      return 150490 + (p - 3000000) * 0.07;
+    case "VIC":
+      if (p <= 25000) return p * 0.014;
+      if (p <= 130000) return 350 + (p - 25000) * 0.024;
+      if (p <= 960000) return 2870 + (p - 130000) * 0.06;
+      if (p <= 2000000) return 52670 + (p - 960000) * 0.055;
+      return 109870 + (p - 2000000) * 0.065;
+    case "SA":
+      if (p <= 12000) return p * 0.01;
+      if (p <= 30000) return 120 + (p - 12000) * 0.02;
+      if (p <= 50000) return 480 + (p - 30000) * 0.03;
+      if (p <= 100000) return 1080 + (p - 50000) * 0.035;
+      if (p <= 200000) return 2830 + (p - 100000) * 0.04;
+      if (p <= 250000) return 6830 + (p - 200000) * 0.0425;
+      if (p <= 300000) return 8955 + (p - 250000) * 0.0475;
+      if (p <= 500000) return 11330 + (p - 300000) * 0.05;
+      return 21330 + (p - 500000) * 0.055;
+    case "WA":
+      if (p <= 80000) return p * 0.019;
+      if (p <= 100000) return 1520 + (p - 80000) * 0.0285;
+      if (p <= 250000) return 2090 + (p - 100000) * 0.038;
+      if (p <= 500000) return 7790 + (p - 250000) * 0.0475;
+      return 19665 + (p - 500000) * 0.0515;
+    case "ACT":
+      if (p <= 200000) return p * 0.012;
+      if (p <= 300000) return 2400 + (p - 200000) * 0.022;
+      if (p <= 500000) return 4600 + (p - 300000) * 0.034;
+      if (p <= 750000) return 11400 + (p - 500000) * 0.0432;
+      if (p <= 1000000) return 22200 + (p - 750000) * 0.059;
+      if (p <= 1455000) return 36950 + (p - 1000000) * 0.064;
+      return 66070 + (p - 1455000) * 0.0454;
+    case "NT": {
+      const V = p / 1000;
+      return 0.06571441 * V * V + 15 * V;
+    }
+    case "TAS":
+      if (p <= 3000) return 50;
+      if (p <= 25000) return 50 + (p - 3000) * 0.0175;
+      if (p <= 75000) return 435 + (p - 25000) * 0.0225;
+      if (p <= 200000) return 1560 + (p - 75000) * 0.035;
+      if (p <= 375000) return 5935 + (p - 200000) * 0.04;
+      if (p <= 725000) return 12935 + (p - 375000) * 0.0425;
+      return 27810 + (p - 725000) * 0.045;
+    default: return 0;
+  }
+}
+
 function calcIncomeTax(income: number): number {
   if (income <= 18200) return 0;
   if (income <= 45000) return (income - 18200) * 0.19;
@@ -58,28 +122,42 @@ export default function CGTPage() {
   const router = useRouter();
 
   const [purchasePrice, setPurchasePrice] = useState("500,000");
-  const [purchaseCosts, setPurchaseCosts] = useState("25,000");
+  const [deposit, setDeposit] = useState("100,000");
+  const [state, setState] = useState("QLD");
+  const [conveyancer, setConveyancer] = useState("1,800");
+  const [buildingPest, setBuildingPest] = useState("600");
+  const [buyerAgent, setBuyerAgent] = useState("0");
+  const [loanFee, setLoanFee] = useState("400");
+  const [titleInsurance, setTitleInsurance] = useState("300");
   const [salePrice, setSalePrice] = useState("750,000");
-  const [saleCosts, setSaleCosts] = useState("18,000");
+  const [agentFee, setAgentFee] = useState("15,000");
+  const [saleConveyancer, setSaleConveyancer] = useState("1,500");
+  const [marketing, setMarketing] = useState("2,000");
+  const [saleOther, setSaleOther] = useState("0");
   const [yearsHeld, setYearsHeld] = useState("5");
   const [ownership, setOwnership] = useState("Individual");
   const [salary, setSalary] = useState("95,000");
 
-  const costBase = parseMoney(purchasePrice) + parseMoney(purchaseCosts);
-  const netSalePrice = parseMoney(salePrice) - parseMoney(saleCosts);
+  const currentPurchasePrice = parseMoney(purchasePrice);
+  const currentStampDuty = calculateEstimatedStampDuty(currentPurchasePrice, state);
+  const currentBuyingCosts = parseMoney(conveyancer) + parseMoney(buildingPest) + ((Number(buyerAgent) || 0) / 100 * currentPurchasePrice) + parseMoney(loanFee) + parseMoney(titleInsurance);
+  const costBase = currentPurchasePrice + currentStampDuty + currentBuyingCosts;
+  const currentSaleCosts = parseMoney(agentFee) + parseMoney(saleConveyancer) + parseMoney(marketing) + parseMoney(saleOther);
+  const netSalePrice = parseMoney(salePrice) - currentSaleCosts;
   const capitalGain = netSalePrice - costBase;
   const held = parseFloat(yearsHeld) || 0;
-  const discountEligible = (ownership === "Individual" || ownership === "Joint") && held >= 1;
-  const discountedGain = discountEligible && capitalGain > 0 ? capitalGain * 0.5 : capitalGain;
-  const taxableGain = Math.max(0, discountedGain);
+  const discountEligible = held >= 1;
+  const isJoint = ownership === "Joint";
+  const gainPerOwner = capitalGain * (isJoint ? 0.5 : 1);
+  const taxableGainPerOwner = discountEligible && gainPerOwner > 0 ? gainPerOwner * 0.5 : Math.max(0, gainPerOwner);
+  const taxableGain = taxableGainPerOwner * (isJoint ? 2 : 1);
 
   const salaryNum = parseMoney(salary);
-  const taxOnSalary = calcIncomeTax(salaryNum);
-  const taxOnSalaryPlusGain = calcIncomeTax(salaryNum + taxableGain);
-  const estimatedTax = taxOnSalaryPlusGain - taxOnSalary;
-  const effectiveRate = taxableGain > 0 ? (estimatedTax / taxableGain) * 100 : 0;
+  const taxPerOwner = calcIncomeTax(salaryNum + taxableGainPerOwner) - calcIncomeTax(salaryNum);
+  const estimatedTax = taxPerOwner * (isJoint ? 2 : 1);
+  const effectiveRate = taxableGainPerOwner > 0 ? (taxPerOwner / taxableGainPerOwner) * 100 : 0;
   const bracketBefore = marginalBracket(salaryNum);
-  const bracketAfter = marginalBracket(salaryNum + taxableGain);
+  const bracketAfter = marginalBracket(salaryNum + taxableGainPerOwner);
   const pushedHigher = bracketAfter !== bracketBefore;
   const netProfit = capitalGain - estimatedTax;
 
@@ -137,9 +215,11 @@ export default function CGTPage() {
           <div className="space-y-6">
 
             <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
-              <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Purchase</h2>
+              <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Purchase Details</h2>
               <p className="mt-2 text-sm" style={{ color: "#64748B" }}>What you paid and the costs involved.</p>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
                 <div>
                   <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Purchase price</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
@@ -147,34 +227,111 @@ export default function CGTPage() {
                     <input type="text" value={purchasePrice} onChange={(e) => handleMoneyChange(e, setPurchasePrice)} tabIndex={1} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(2); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
                   </div>
                 </div>
+
                 <div>
-                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Purchase costs (stamp duty, fees)</label>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Deposit</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                     <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
-                    <input type="text" value={purchaseCosts} onChange={(e) => handleMoneyChange(e, setPurchaseCosts)} tabIndex={2} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(3); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
+                    <input type="text" value={deposit} onChange={(e) => handleMoneyChange(e, setDeposit)} tabIndex={2} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(3); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
                   </div>
                 </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>State</label>
+                  <select value={state} onChange={(e) => setState(e.target.value)} tabIndex={3} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(4); } }} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
+                    <option value="QLD">QLD — Queensland</option>
+                    <option value="NSW">NSW — New South Wales</option>
+                    <option value="VIC">VIC — Victoria</option>
+                    <option value="SA">SA — South Australia</option>
+                    <option value="WA">WA — Western Australia</option>
+                    <option value="ACT">ACT — Capital Territory</option>
+                    <option value="NT">NT — Northern Territory</option>
+                    <option value="TAS">TAS — Tasmania</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Stamp duty (est.)</label>
+                  <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                    <p className="text-base font-semibold" style={{ color: "#0F172A" }}>${Math.round(currentStampDuty).toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <p className="mb-3 text-sm font-medium" style={{ color: "#3D5A80" }}>Buying costs</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Conveyancer / Solicitor", value: conveyancer, setter: setConveyancer },
+                      { label: "Building & pest inspection", value: buildingPest, setter: setBuildingPest },
+                      { label: "Loan establishment fee", value: loanFee, setter: setLoanFee },
+                      { label: "Title insurance", value: titleInsurance, setter: setTitleInsurance },
+                    ].map(({ label, value, setter }) => (
+                      <div key={label}>
+                        <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>{label}</label>
+                        <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                          <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                          <input type="text" value={value} onChange={(e) => handleMoneyChange(e, setter)} tabIndex={-1} className="min-w-0 flex-1 bg-transparent outline-none text-sm" style={{ color: "#0F172A" }} />
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>Buyer's agent fee</label>
+                      <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                        <input type="text" value={buyerAgent} onChange={(e) => setBuyerAgent(e.target.value)} tabIndex={-1} className="min-w-0 flex-1 bg-transparent outline-none text-sm" style={{ color: "#0F172A" }} />
+                        <span className="ml-1 shrink-0 select-none" style={{ color: "#64748B" }}>%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>Total buying costs</label>
+                      <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                        <p className="text-sm font-semibold" style={{ color: "#0F172A" }}>${Math.round(currentBuyingCosts).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
             <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
               <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Sale</h2>
               <p className="mt-2 text-sm" style={{ color: "#64748B" }}>What you sold for and the costs of selling.</p>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
                 <div>
                   <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Sale price</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                     <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
-                    <input type="text" value={salePrice} onChange={(e) => handleMoneyChange(e, setSalePrice)} tabIndex={3} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(4); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
+                    <input type="text" value={salePrice} onChange={(e) => handleMoneyChange(e, setSalePrice)} tabIndex={4} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(5); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
                   </div>
                 </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Sale costs (agent fees, legal)</label>
-                  <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
-                    <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
-                    <input type="text" value={saleCosts} onChange={(e) => handleMoneyChange(e, setSaleCosts)} tabIndex={4} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(5); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
+
+                <div className="sm:col-span-2">
+                  <p className="mb-3 text-sm font-medium" style={{ color: "#3D5A80" }}>Selling costs</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Agent commission", value: agentFee, setter: setAgentFee },
+                      { label: "Conveyancer / Solicitor", value: saleConveyancer, setter: setSaleConveyancer },
+                      { label: "Marketing & advertising", value: marketing, setter: setMarketing },
+                      { label: "Other costs", value: saleOther, setter: setSaleOther },
+                    ].map(({ label, value, setter }) => (
+                      <div key={label}>
+                        <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>{label}</label>
+                        <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                          <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                          <input type="text" value={value} onChange={(e) => handleMoneyChange(e, setter)} tabIndex={-1} className="min-w-0 flex-1 bg-transparent outline-none text-sm" style={{ color: "#0F172A" }} />
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>Total selling costs</label>
+                      <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                        <p className="text-sm font-semibold" style={{ color: "#0F172A" }}>${Math.round(currentSaleCosts).toLocaleString()}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
               </div>
             </div>
 
@@ -203,7 +360,7 @@ export default function CGTPage() {
                 <div className="sm:col-span-2">
                   <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Ownership structure</label>
                   <div className="flex w-full overflow-hidden rounded-2xl border bg-white" style={{ borderColor: "#E7E0D6" }}>
-                    {["Individual", "Joint", "Company"].map((type) => (
+                    {["Individual", "Joint"].map((type) => (
                       <button key={type} type="button" onClick={() => setOwnership(type)}
                         className="flex-1 py-3 text-sm font-medium transition"
                         style={{ backgroundColor: ownership === type ? "#3D5A80" : "transparent", color: ownership === type ? "#FFFFFF" : "#64748B" }}>
@@ -226,25 +383,24 @@ export default function CGTPage() {
 
               <div className="mt-6 grid grid-cols-2 gap-4">
 
-                <div className="col-span-2 rounded-3xl border-t-4 p-5" style={{ borderColor: capitalGain >= 0 ? "#49A078" : "#E53E3E", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
-                  <p className="text-sm" style={{ color: "#64748B" }}>Capital gain</p>
-                  <p className="mt-3 text-2xl font-semibold" style={{ color: capitalGain >= 0 ? "#49A078" : "#E53E3E" }}>{formatMoney(capitalGain)}</p>
-                </div>
-
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#D4A373", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
-                  <p className="text-sm" style={{ color: "#64748B" }}>Taxable gain</p>
+                  <p className="text-sm" style={{ color: "#64748B" }}>Taxable gain{isJoint ? " (total)" : ""}</p>
                   <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatMoney(taxableGain)}</p>
+                  {isJoint && <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>Each owner: {formatMoney(taxableGainPerOwner)}</p>}
                 </div>
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#E53E3E", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
-                  <p className="text-sm" style={{ color: "#64748B" }}>CGT payable</p>
+                  <p className="text-sm" style={{ color: "#64748B" }}>CGT payable{isJoint ? " (total)" : ""}</p>
                   <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatMoney(estimatedTax)}</p>
-                  <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>Effective rate {effectiveRate.toFixed(1)}%{pushedHigher ? ` · gain pushed you into ${bracketAfter}` : ""}</p>
+                  <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>
+                    {isJoint ? `Each owner: ${formatMoney(taxPerOwner)} · ` : ""}Effective rate {effectiveRate.toFixed(1)}%{pushedHigher ? ` · pushed into ${bracketAfter}` : ""}
+                  </p>
                 </div>
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#49A078", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
                   <p className="text-sm" style={{ color: "#64748B" }}>Net profit after CGT</p>
                   <p className="mt-3 text-2xl font-semibold" style={{ color: "#49A078" }}>{formatMoney(netProfit)}</p>
+                  {isJoint && <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>Each owner: {formatMoney(netProfit / 2)}</p>}
                 </div>
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>

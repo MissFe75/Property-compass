@@ -81,7 +81,6 @@ export default function YieldPage() {
 
   const freqDivisor = incomeFrequency === "Weekly" ? 52 : incomeFrequency === "Fortnightly" ? 26 : 1;
   const freqLabel = incomeFrequency === "Weekly" ? "/wk" : incomeFrequency === "Fortnightly" ? "/fn" : "/yr";
-  const netIncomeDisplay = netAnnualIncome / freqDivisor;
   const grossRentDisplay = annualRent / freqDivisor;
 
   return (
@@ -269,17 +268,10 @@ export default function YieldPage() {
                   <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>{netYield < 4 ? "Low return" : netYield <= 6 ? "Average return" : "Strong return"}</p>
                 </div>
 
-                {[
-                  { label: `Gross rent`, value: `${formatMoney(grossRentDisplay)}${freqLabel}`, accent: "#49A078" },
-                  { label: "Total expenses", value: `${formatMoney(totalExpenses)}/yr`, accent: "#D4A373" },
-                  { label: "Net income", value: `${formatMoney(netIncomeDisplay)}${freqLabel}`, accent: "#3D5A80" },
-                  { label: "Net annual income", value: formatMoney(netAnnualIncome), accent: "#3D5A80" },
-                ].map(({ label, value, accent }) => (
-                  <div key={label} className="rounded-3xl border-t-4 p-5" style={{ borderColor: accent, backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
-                    <p className="text-sm" style={{ color: "#64748B" }}>{label}</p>
-                    <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{value}</p>
-                  </div>
-                ))}
+                <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#49A078", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                  <p className="text-sm" style={{ color: "#64748B" }}>Gross rent</p>
+                  <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatMoney(grossRentDisplay)}{freqLabel}</p>
+                </div>
 
               </div>
             </div>

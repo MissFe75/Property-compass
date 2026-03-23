@@ -49,17 +49,78 @@ function handleMoneyChange(
   });
 }
 
-function calculateEstimatedStampDuty(purchasePrice: number): number {
+function calculateEstimatedStampDuty(purchasePrice: number, state: string): number {
   if (purchasePrice <= 0) return 0;
+  const p = purchasePrice;
 
-  // Simple QLD-style estimate for now.
-  // We can replace this later with state-specific rules.
-  if (purchasePrice <= 5000) return purchasePrice * 0.015;
-  if (purchasePrice <= 75000) return 75 + (purchasePrice - 5000) * 0.035;
-  if (purchasePrice <= 540000) return 2450 + (purchasePrice - 75000) * 0.035;
-  if (purchasePrice <= 1000000) return 18725 + (purchasePrice - 540000) * 0.045;
+  switch (state) {
+    case "QLD":
+      if (p <= 5000) return p * 0.015;
+      if (p <= 75000) return 75 + (p - 5000) * 0.035;
+      if (p <= 540000) return 2450 + (p - 75000) * 0.035;
+      if (p <= 1000000) return 18725 + (p - 540000) * 0.045;
+      return 39425 + (p - 1000000) * 0.0575;
 
-  return 39425 + (purchasePrice - 1000000) * 0.0575;
+    case "NSW":
+      if (p <= 14000) return p * 0.0125;
+      if (p <= 30000) return 175 + (p - 14000) * 0.015;
+      if (p <= 80000) return 415 + (p - 30000) * 0.0175;
+      if (p <= 300000) return 1290 + (p - 80000) * 0.035;
+      if (p <= 1000000) return 8990 + (p - 300000) * 0.045;
+      if (p <= 3000000) return 40490 + (p - 1000000) * 0.055;
+      return 150490 + (p - 3000000) * 0.07;
+
+    case "VIC":
+      if (p <= 25000) return p * 0.014;
+      if (p <= 130000) return 350 + (p - 25000) * 0.024;
+      if (p <= 960000) return 2870 + (p - 130000) * 0.06;
+      if (p <= 2000000) return 52670 + (p - 960000) * 0.055;
+      return 109870 + (p - 2000000) * 0.065;
+
+    case "SA":
+      if (p <= 12000) return p * 0.01;
+      if (p <= 30000) return 120 + (p - 12000) * 0.02;
+      if (p <= 50000) return 480 + (p - 30000) * 0.03;
+      if (p <= 100000) return 1080 + (p - 50000) * 0.035;
+      if (p <= 200000) return 2830 + (p - 100000) * 0.04;
+      if (p <= 250000) return 6830 + (p - 200000) * 0.0425;
+      if (p <= 300000) return 8955 + (p - 250000) * 0.0475;
+      if (p <= 500000) return 11330 + (p - 300000) * 0.05;
+      return 21330 + (p - 500000) * 0.055;
+
+    case "WA":
+      if (p <= 80000) return p * 0.019;
+      if (p <= 100000) return 1520 + (p - 80000) * 0.0285;
+      if (p <= 250000) return 2090 + (p - 100000) * 0.038;
+      if (p <= 500000) return 7790 + (p - 250000) * 0.0475;
+      return 19665 + (p - 500000) * 0.0515;
+
+    case "ACT":
+      if (p <= 200000) return p * 0.012;
+      if (p <= 300000) return 2400 + (p - 200000) * 0.022;
+      if (p <= 500000) return 4600 + (p - 300000) * 0.034;
+      if (p <= 750000) return 11400 + (p - 500000) * 0.0432;
+      if (p <= 1000000) return 22200 + (p - 750000) * 0.059;
+      if (p <= 1455000) return 36950 + (p - 1000000) * 0.064;
+      return 66070 + (p - 1455000) * 0.0454;
+
+    case "NT": {
+      const V = p / 1000;
+      return 0.06571441 * V * V + 15 * V;
+    }
+
+    case "TAS":
+      if (p <= 3000) return 50;
+      if (p <= 25000) return 50 + (p - 3000) * 0.0175;
+      if (p <= 75000) return 435 + (p - 25000) * 0.0225;
+      if (p <= 200000) return 1560 + (p - 75000) * 0.035;
+      if (p <= 375000) return 5935 + (p - 200000) * 0.04;
+      if (p <= 725000) return 12935 + (p - 375000) * 0.0425;
+      return 27810 + (p - 725000) * 0.045;
+
+    default:
+      return 0;
+  }
 }
 
 function calculateMonthlyRepayment(
@@ -101,36 +162,42 @@ export default function AppPage() {
   const [interestRate, setInterestRate] = useState("6.25");
   const [loanTerm, setLoanTerm] = useState("30");
   const [repaymentType, setRepaymentType] = useState("Principal & Interest");
+  const [state, setState] = useState("QLD");
 
   const [weeklyRent, setWeeklyRent] = useState("620");
-  const [annualExpenses, setAnnualExpenses] = useState("8,500");
+  const [rentFreq, setRentFreq] = useState("Weekly");
   const [vacancyRate, setVacancyRate] = useState("2");
   const [propertyManagement, setPropertyManagement] = useState("7");
+  const [landlordIns, setLandlordIns] = useState("1,500");
+  const [bodyCorp, setBodyCorp] = useState("0");
+  const [maintenance, setMaintenance] = useState("2,000");
   const [councilRates, setCouncilRates] = useState("2,400");
   const [insurance, setInsurance] = useState("1,200");
 
   const currentPurchase = parseMoney(purchasePrice);
-  const currentStampDuty = calculateEstimatedStampDuty(currentPurchase);
+  const currentStampDuty = calculateEstimatedStampDuty(currentPurchase, state);
   const currentBuyingCosts =
     parseMoney(conveyancer) +
     parseMoney(buildingPest) +
-    parseMoney(buyerAgent) +
+    (parsePercent(buyerAgent) / 100 * currentPurchase) +
     parseMoney(loanFee) +
     parseMoney(titleInsurance);
 
   const currentLoanAmount =
     currentPurchase + currentStampDuty + currentBuyingCosts - parseMoney(deposit);
 
-  const currentAnnualRent = parseMoney(weeklyRent) * 52;
+  const rentMultiplier = rentFreq === "Weekly" ? 52 : rentFreq === "Fortnightly" ? 26 : rentFreq === "Monthly" ? 12 : 1;
+  const currentAnnualRent = parseMoney(weeklyRent) * rentMultiplier;
   const currentVacancyCost = currentAnnualRent * (parsePercent(vacancyRate) / 100);
   const currentManagementCost = currentAnnualRent * (parsePercent(propertyManagement) / 100);
-  const currentAnnualNetIncome =
-    currentAnnualRent -
-    currentVacancyCost -
-    currentManagementCost -
-    parseMoney(annualExpenses) -
-    parseMoney(councilRates) -
+  const currentTotalExpenses =
+    parseMoney(landlordIns) +
+    parseMoney(bodyCorp) +
+    parseMoney(maintenance) +
+    parseMoney(councilRates) +
     parseMoney(insurance);
+  const currentAnnualNetIncome =
+    currentAnnualRent - currentVacancyCost - currentManagementCost - currentTotalExpenses;
 
   const currentMonthlyRepayment = calculateMonthlyRepayment(
     currentLoanAmount,
@@ -141,18 +208,21 @@ export default function AppPage() {
 
   const currentGrossYield = currentPurchase > 0 ? (currentAnnualRent / currentPurchase) * 100 : 0;
   const currentNetYield = currentPurchase > 0 ? (currentAnnualNetIncome / currentPurchase) * 100 : 0;
-  const currentWeeklyCashflow = (currentAnnualNetIncome - currentMonthlyRepayment * 12) / 52;
+  const annualCashflow = currentAnnualNetIncome - currentMonthlyRepayment * 12;
+  const currentCashflow = annualCashflow / rentMultiplier;
+  const currentRepayment = currentMonthlyRepayment * 12 / rentMultiplier;
 
   useEffect(() => {
-    const totalExpenses = parseMoney(annualExpenses) + parseMoney(councilRates) + parseMoney(insurance);
+    const totalExpenses = parseMoney(landlordIns) + parseMoney(bodyCorp) + parseMoney(maintenance) + parseMoney(councilRates) + parseMoney(insurance);
     localStorage.setItem("pc_analyser", JSON.stringify({
       price: purchasePrice,
       deposit,
       rent: weeklyRent,
+      rentFreq,
       expenses: Math.round(totalExpenses).toLocaleString("en-AU"),
       rate: interestRate,
     }));
-  }, [purchasePrice, deposit, weeklyRent, annualExpenses, councilRates, insurance, interestRate]);
+  }, [purchasePrice, deposit, weeklyRent, rentFreq, landlordIns, bodyCorp, maintenance, councilRates, insurance, interestRate]);
 
   return (
     <main
@@ -330,22 +400,33 @@ export default function AppPage() {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <div
-                    tabIndex={-1}
-                    className="rounded-2xl border bg-white px-4 py-3"
-                    style={{ borderColor: "#E7E0D6" }}
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>
+                    State
+                  </label>
+                  <select
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(4); } }}
+                    tabIndex={3}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
                   >
-                    <p
-                      className="text-sm font-medium"
-                      style={{ color: "#3D5A80" }}
-                    >
-                      Auto-calculated stamp duty
-                    </p>
-                    <p
-                      className="mt-2 text-2xl font-semibold"
-                      style={{ color: "#0F172A" }}
-                    >
+                    <option value="QLD">QLD — Queensland</option>
+                    <option value="NSW">NSW — New South Wales</option>
+                    <option value="VIC">VIC — Victoria</option>
+                    <option value="SA">SA — South Australia</option>
+                    <option value="WA">WA — Western Australia</option>
+                    <option value="ACT">ACT — Capital Territory</option>
+                    <option value="NT">NT — Northern Territory</option>
+                    <option value="TAS">TAS — Tasmania</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Stamp duty (est.)</label>
+                  <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                    <p className="text-base font-semibold" style={{ color: "#0F172A" }}>
                       {formatMoney(currentStampDuty)}
                     </p>
                   </div>
@@ -359,7 +440,6 @@ export default function AppPage() {
                     {[
                       { label: "Conveyancer / Solicitor", value: conveyancer, setter: setConveyancer },
                       { label: "Building & pest inspection", value: buildingPest, setter: setBuildingPest },
-                      { label: "Buyer's agent fee", value: buyerAgent, setter: setBuyerAgent },
                       { label: "Loan establishment fee", value: loanFee, setter: setLoanFee },
                       { label: "Title insurance", value: titleInsurance, setter: setTitleInsurance },
                     ].map(({ label, value, setter }) => (
@@ -378,7 +458,21 @@ export default function AppPage() {
                         </div>
                       </div>
                     ))}
-                    <div className="rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                    <div>
+                      <label className="mb-1.5 block text-xs" style={{ color: "#64748B" }}>Buyer's agent fee</label>
+                      <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                        <input
+                          type="text"
+                          value={buyerAgent}
+                          onChange={(e) => setBuyerAgent(e.target.value)}
+                          tabIndex={-1}
+                          className="min-w-0 flex-1 bg-transparent outline-none text-sm"
+                          style={{ color: "#0F172A" }}
+                        />
+                        <span className="ml-1 shrink-0 select-none" style={{ color: "#64748B" }}>%</span>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
                       <p className="text-xs" style={{ color: "#64748B" }}>Total buying costs</p>
                       <p className="mt-1 text-base font-semibold" style={{ color: "#0F172A" }}>
                         {formatMoney(currentBuyingCosts)}
@@ -434,51 +528,12 @@ export default function AppPage() {
                     className="mb-2 block text-sm font-medium"
                     style={{ color: "#3D5A80" }}
                   >
-                    Loan term (years)
-                  </label>
-                  <input
-                    type="text"
-                    value={loanTerm}
-                    onChange={(e) => setLoanTerm(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(6); } }}
-                    tabIndex={5}
-                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
-                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <div
-                    tabIndex={-1}
-                    className="rounded-2xl border bg-white px-4 py-3"
-                    style={{ borderColor: "#E7E0D6" }}
-                  >
-                    <p
-                      className="text-sm font-medium"
-                      style={{ color: "#3D5A80" }}
-                    >
-                      Auto-calculated loan amount
-                    </p>
-                    <p
-                      className="mt-2 text-2xl font-semibold"
-                      style={{ color: "#0F172A" }}
-                    >
-                      {formatMoney(currentLoanAmount)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
                     Repayment type
                   </label>
                   <div
-                    tabIndex={6}
+                    tabIndex={5}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") { e.preventDefault(); focusField(7); }
+                      if (e.key === "Enter") { e.preventDefault(); focusField(6); }
                       if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") {
                         e.preventDefault();
                         setRepaymentType(r => r === "Principal & Interest" ? "Interest Only" : "Principal & Interest");
@@ -513,6 +568,31 @@ export default function AppPage() {
                     </button>
                   </div>
                 </div>
+
+                <div>
+                  <label
+                    className="mb-2 block text-sm font-medium"
+                    style={{ color: "#3D5A80" }}
+                  >
+                    Loan term (years)
+                  </label>
+                  <input
+                    type="text"
+                    value={loanTerm}
+                    onChange={(e) => setLoanTerm(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(7); } }}
+                    tabIndex={6}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
+                </div>
+
+                <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                  <p className="text-xs" style={{ color: "#64748B" }}>Loan amount (auto)</p>
+                  <p className="mt-1 text-base font-semibold" style={{ color: "#0F172A" }}>
+                    {formatMoney(currentLoanAmount)}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -538,13 +618,27 @@ export default function AppPage() {
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
+
+                {/* Frequency toggle + rent input */}
                 <div>
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Weekly rent
-                  </label>
+                  <div className="mb-2 flex overflow-hidden rounded-xl border bg-white text-xs" style={{ borderColor: "#E7E0D6" }}>
+                    {["Weekly", "Fortnightly", "Monthly", "Yearly"].map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setRentFreq(f)}
+                        className="flex-1 py-1.5 transition-colors"
+                        style={{
+                          backgroundColor: rentFreq === f ? "#3D5A80" : "transparent",
+                          color: rentFreq === f ? "#fff" : "#64748B",
+                        }}
+                      >
+                        {f === "Weekly" ? "Wkly" : f === "Fortnightly" ? "Frtly" : f === "Monthly" ? "Mthly" : "Yrly"}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>{rentFreq} rent</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                     <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
                     <input
@@ -559,34 +653,26 @@ export default function AppPage() {
                   </div>
                 </div>
 
+                {/* Spacer — pushes right column down one row */}
+                <div />
+
+                {/* Property management */}
                 <div>
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Annual expenses
-                  </label>
-                  <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
-                    <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
-                    <input
-                      type="text"
-                      value={annualExpenses}
-                      onChange={(e) => handleMoneyChange(e, setAnnualExpenses)}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(9); } }}
-                      tabIndex={8}
-                      className="min-w-0 flex-1 bg-transparent outline-none"
-                      style={{ color: "#0F172A" }}
-                    />
-                  </div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Property management (%)</label>
+                  <input
+                    type="text"
+                    value={propertyManagement}
+                    onChange={(e) => setPropertyManagement(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(9); } }}
+                    tabIndex={8}
+                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                  />
                 </div>
 
+                {/* Vacancy rate */}
                 <div>
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Vacancy rate (%)
-                  </label>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Vacancy rate (%)</label>
                   <input
                     type="text"
                     value={vacancyRate}
@@ -598,37 +684,32 @@ export default function AppPage() {
                   />
                 </div>
 
+                {/* Body corporate */}
                 <div>
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Property management (%)
-                  </label>
-                  <input
-                    type="text"
-                    value={propertyManagement}
-                    onChange={(e) => setPropertyManagement(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(11); } }}
-                    tabIndex={10}
-                    className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
-                    style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Council rates
-                  </label>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Body corporate</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                     <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
                     <input
                       type="text"
-                      value={councilRates}
-                      onChange={(e) => handleMoneyChange(e, setCouncilRates)}
+                      value={bodyCorp}
+                      onChange={(e) => handleMoneyChange(e, setBodyCorp)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(11); } }}
+                      tabIndex={10}
+                      className="min-w-0 flex-1 bg-transparent outline-none"
+                      style={{ color: "#0F172A" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Landlord insurance */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Landlord insurance</label>
+                  <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                    <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                    <input
+                      type="text"
+                      value={landlordIns}
+                      onChange={(e) => handleMoneyChange(e, setLandlordIns)}
                       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(12); } }}
                       tabIndex={11}
                       className="min-w-0 flex-1 bg-transparent outline-none"
@@ -637,25 +718,67 @@ export default function AppPage() {
                   </div>
                 </div>
 
+                {/* Council rates */}
                 <div>
-                  <label
-                    className="mb-2 block text-sm font-medium"
-                    style={{ color: "#3D5A80" }}
-                  >
-                    Insurance
-                  </label>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Council rates</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                     <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
                     <input
                       type="text"
-                      value={insurance}
-                      onChange={(e) => handleMoneyChange(e, setInsurance)}
+                      value={councilRates}
+                      onChange={(e) => handleMoneyChange(e, setCouncilRates)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(13); } }}
                       tabIndex={12}
                       className="min-w-0 flex-1 bg-transparent outline-none"
                       style={{ color: "#0F172A" }}
                     />
                   </div>
                 </div>
+
+                {/* Maintenance */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Maintenance</label>
+                  <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                    <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                    <input
+                      type="text"
+                      value={maintenance}
+                      onChange={(e) => handleMoneyChange(e, setMaintenance)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(14); } }}
+                      tabIndex={13}
+                      className="min-w-0 flex-1 bg-transparent outline-none"
+                      style={{ color: "#0F172A" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Total expenses auto tile */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>{rentFreq} expenses (auto)</label>
+                  <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                    <p className="text-base font-semibold" style={{ color: "#0F172A" }}>
+                      {formatMoney(currentTotalExpenses / rentMultiplier)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Insurance */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Insurance</label>
+                  <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                    <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                    <input
+                      type="text"
+                      value={insurance}
+                      onChange={(e) => handleMoneyChange(e, setInsurance)}
+                      tabIndex={14}
+                      className="min-w-0 flex-1 bg-transparent outline-none"
+                      style={{ color: "#0F172A" }}
+                    />
+                  </div>
+                </div>
+
+
               </div>
             </div>
           </section>
@@ -705,13 +828,13 @@ export default function AppPage() {
                 style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
               >
                 <p className="text-sm" style={{ color: "#64748B" }}>
-                  Monthly repayment
+                  {rentFreq} repayment
                 </p>
                 <p
                   className="mt-2 text-3xl font-semibold"
                   style={{ color: "#0F172A" }}
                 >
-                  {formatMoney(currentMonthlyRepayment)}
+                  {formatMoney(currentRepayment)}
                 </p>
               </div>
 
@@ -784,28 +907,28 @@ export default function AppPage() {
                 style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}
               >
                 <p className="text-sm" style={{ color: "#64748B" }}>
-                  Weekly cashflow
+                  {rentFreq} cashflow
                 </p>
                 <p
                   className="mt-2 text-3xl font-semibold"
                   style={{ color: "#0F172A" }}
                 >
-                  {formatMoney(currentWeeklyCashflow)}
+                  {formatMoney(currentCashflow)}
                 </p>
                 <p
                   className="mt-1 text-sm font-medium"
                   style={{
                     color:
-                      currentWeeklyCashflow < -10
+                      currentCashflow < -10
                         ? "#B45309"
-                        : currentWeeklyCashflow <= 10
+                        : currentCashflow <= 10
                         ? "#1D4ED8"
                         : "#15803D",
                   }}
                 >
-                  {currentWeeklyCashflow < -10
+                  {currentCashflow < -10
                     ? "Negatively geared"
-                    : currentWeeklyCashflow <= 10
+                    : currentCashflow <= 10
                     ? "Neutral"
                     : "Positively geared"}
                 </p>
