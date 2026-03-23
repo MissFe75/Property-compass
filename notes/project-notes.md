@@ -345,3 +345,42 @@ Fix layout issues at the structure level — do not patch with extra content.
 - Inputs auto-save to localStorage on every change (syncing to Compare Property A)
 
 **Committed and pushed to:** `MissFe75/property-compass` on GitHub
+
+---
+
+### March 23, 2026 — PDF feature, yield improvements, and deployment
+
+**Save as PDF — all 5 calculators**
+- Built shared `PdfModal` component (`app/components/PdfModal.tsx`) using jsPDF
+  - Branded PDF: navy header band, Property Compass title, date, "Prepared for" name, notes section, disclaimer footer
+  - Data passed as structured `PdfSection[]` array from each page
+- Added Save as PDF button + modal to all 5 calculators:
+  - Property Analyser ✓
+  - Mortgage Calculator ✓
+  - Yield Calculator ✓
+  - CGT Calculator ✓
+  - Compare Properties ✓ (generates a section per property)
+- Fixed PDF name placeholder — was "e.g. Fiona Graham", changed to "e.g. Alex Smith"
+
+**Yield Calculator improvements**
+- Added **Land tax** field to expenses (defaults $0, included in all calculations)
+- Replaced weak "Gross rent" result tile with **Net income** tile
+  - Shows rent minus all expenses, before mortgage
+  - Colour-coded: green if positive, red if negative
+  - Subtext: "After expenses, before mortgage"
+- Added **Depreciation tip** callout below results
+  - Reminds users a quantity surveyor's depreciation schedule can reduce taxable income significantly
+
+**Vercel deployment**
+- App live at sextantdigital.com.au
+- Hosting: Vercel (auto-deploys on every GitHub push)
+- DNS: Cloudflare → Vercel (A record + CNAME, proxy disabled)
+- sextantdigital.au redirects: pending (.au DNS not active yet)
+
+**Repo cleanup**
+- Archived old repos: `property-toolkit` and `MissFe75-property-toolkit`
+- Active repo: `MissFe75/property-compass`
+
+**Next steps**
+- Sort sextantdigital.au redirects when .au DNS is ready
+- Continue refining calculators as needed
