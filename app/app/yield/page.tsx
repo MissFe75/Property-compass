@@ -62,6 +62,7 @@ export default function YieldPage() {
   const [waterRates, setWaterRates] = useState("800");
   const [maintenance, setMaintenance] = useState("2,000");
   const [strata, setStrata] = useState("0");
+  const [landTax, setLandTax] = useState("0");
   const [expenseFrequency, setExpenseFrequency] = useState("Annual");
 
   const [incomeFrequency, setIncomeFrequency] = useState("Weekly");
@@ -75,7 +76,7 @@ export default function YieldPage() {
   const annualRent = parseMoney(rent) * rentMultiplier;
   const vacancyCost = annualRent * (parsePercent(vacancyRate) / 100);
   const managementCost = annualRent * (parsePercent(propertyManagement) / 100);
-  const fixedExpenses = (parseMoney(landlordInsurance) + parseMoney(councilRates) + parseMoney(waterRates) + parseMoney(maintenance) + parseMoney(strata)) * expenseMultiplier;
+  const fixedExpenses = (parseMoney(landlordInsurance) + parseMoney(councilRates) + parseMoney(waterRates) + parseMoney(maintenance) + parseMoney(strata) + parseMoney(landTax)) * expenseMultiplier;
   const totalExpenses = fixedExpenses + vacancyCost + managementCost;
   const netAnnualIncome = annualRent - totalExpenses;
   const grossYield = price > 0 ? (annualRent / price) * 100 : 0;
@@ -83,7 +84,7 @@ export default function YieldPage() {
 
   const freqDivisor = incomeFrequency === "Weekly" ? 52 : incomeFrequency === "Fortnightly" ? 26 : 1;
   const freqLabel = incomeFrequency === "Weekly" ? "/wk" : incomeFrequency === "Fortnightly" ? "/fn" : "/yr";
-  const grossRentDisplay = annualRent / freqDivisor;
+
 
   return (
     <main className="min-h-screen" style={{ background: "linear-gradient(to bottom, #F5F0E8, #FFFFFF)" }}>
@@ -217,6 +218,7 @@ export default function YieldPage() {
                   { label: "Water rates", value: waterRates, setter: setWaterRates, tabIdx: 7 },
                   { label: "Maintenance & repairs", value: maintenance, setter: setMaintenance, tabIdx: 8 },
                   { label: "Strata / body corporate", value: strata, setter: setStrata, tabIdx: 9 },
+                  { label: "Land tax", value: landTax, setter: setLandTax, tabIdx: 10 },
                 ].map(({ label, value, setter, tabIdx }) => (
                   <div key={label}>
                     <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>{label}</label>
@@ -273,12 +275,18 @@ export default function YieldPage() {
                   <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>{netYield < 4 ? "Low return" : netYield <= 6 ? "Average return" : "Strong return"}</p>
                 </div>
 
-                <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#49A078", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
-                  <p className="text-sm" style={{ color: "#64748B" }}>Gross rent</p>
-                  <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatMoney(grossRentDisplay)}{freqLabel}</p>
+                <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: netAnnualIncome >= 0 ? "#49A078" : "#E53E3E", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                  <p className="text-sm" style={{ color: "#64748B" }}>Net income</p>
+                  <p className="mt-3 text-2xl font-semibold" style={{ color: netAnnualIncome >= 0 ? "#49A078" : "#E53E3E" }}>{formatMoney(netAnnualIncome / freqDivisor)}{freqLabel}</p>
+                  <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>After expenses, before mortgage</p>
                 </div>
 
               </div>
+
+              <div className="mt-4 rounded-2xl px-4 py-3 text-xs leading-5" style={{ backgroundColor: "#EEF2FF", color: "#3D5A80" }}>
+                <strong>Depreciation tip:</strong> A quantity surveyor&apos;s depreciation schedule can reduce your taxable income by thousands each year — especially on newer or recently renovated properties. It&apos;s often not included in yield calculations but can significantly improve your real after-tax return.
+              </div>
+
             </div>
           </div>
 
@@ -305,6 +313,7 @@ export default function YieldPage() {
                 { label: "Annual gross rent", value: formatMoney(annualRent) },
                 { label: "Annual net income", value: formatMoney(netAnnualIncome) },
                 { label: "Total annual expenses", value: formatMoney(totalExpenses) },
+                { label: "Land tax", value: formatMoney(parseMoney(landTax) * expenseMultiplier) },
               ],
             },
           ]}

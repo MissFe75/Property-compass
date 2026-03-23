@@ -150,7 +150,7 @@ export default function PdfModal({ title, sections, onClose }: PdfModalProps) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Fiona Graham"
+              placeholder="e.g. Alex Smith"
               className="w-full rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
               style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
             />
