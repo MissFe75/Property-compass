@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PdfModal from "../../components/PdfModal";
 
 function parseMoney(value: string): number {
   return Number(value.replace(/[^0-9.-]/g, "")) || 0;
@@ -66,6 +67,7 @@ const TAX_RATES = [
 
 export default function MortgagePage() {
   const router = useRouter();
+  const [showPdf, setShowPdf] = useState(false);
 
   const [loanPurpose, setLoanPurpose] = useState("Owner Occupier");
   const [purchasePrice, setPurchasePrice] = useState("650,000");
@@ -291,7 +293,10 @@ export default function MortgagePage() {
           {/* ── Results ── */}
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
-              <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Results</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Results</h2>
+                <button onClick={() => setShowPdf(true)} className="rounded-2xl border px-4 py-2 text-xs font-medium transition hover:bg-white" style={{ borderColor: "#E7E0D6", color: "#3D5A80" }}>Save as PDF</button>
+              </div>
               <p className="mt-2 text-sm" style={{ color: "#64748B" }}>Updates live as you type.</p>
 
               <div className="mt-6 grid grid-cols-2 gap-4">
@@ -334,6 +339,38 @@ export default function MortgagePage() {
 
         </div>
       </div>
+      {showPdf && (
+        <PdfModal
+          title="Mortgage Calculator"
+          sections={[
+            {
+              heading: "Loan Details",
+              items: [
+                { label: "Loan purpose", value: loanPurpose },
+                { label: "Purchase price", value: formatMoney(parseMoney(purchasePrice)) },
+                { label: "Deposit", value: formatMoney(parseMoney(deposit)) },
+                { label: "Interest rate", value: `${interestRate}%` },
+                { label: "Loan term", value: `${loanTerm} years` },
+                { label: "Repayment type", value: repaymentType },
+              ],
+            },
+            {
+              heading: "Results",
+              items: [
+                { label: `${repaymentFrequency} repayment`, value: formatMoney(repaymentDisplay) },
+                { label: "Annual repayment", value: formatMoney(monthly * 12) },
+                { label: "Total repaid", value: formatMoney(totalRepaid) },
+                { label: "Total interest", value: formatMoney(totalInterest) },
+                ...(yearsSaved > 0 ? [
+                  { label: "Years saved (extra repayments)", value: `${yearsSaved.toFixed(1)} yrs` },
+                  { label: "Interest saved", value: formatMoney(interestSaved) },
+                ] : []),
+              ],
+            },
+          ]}
+          onClose={() => setShowPdf(false)}
+        />
+      )}
     </main>
   );
 }

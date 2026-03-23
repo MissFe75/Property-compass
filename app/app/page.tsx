@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import PdfModal from "../components/PdfModal";
 
 function parseMoney(value: string): number {
   return Number(value.replace(/[^0-9.-]/g, "")) || 0;
@@ -151,6 +152,7 @@ function calculateMonthlyRepayment(
 
 export default function AppPage() {
   const router = useRouter();
+  const [showPdf, setShowPdf] = useState(false);
   const [purchasePrice, setPurchasePrice] = useState("650,000");
   const [deposit, setDeposit] = useState("130,000");
   const [conveyancer, setConveyancer] = useState("1,800");
@@ -805,6 +807,13 @@ export default function AppPage() {
                   Results snapshot
                 </h2>
               </div>
+              <button
+                onClick={() => setShowPdf(true)}
+                className="shrink-0 rounded-2xl border px-4 py-2 text-xs font-medium transition hover:bg-white"
+                style={{ borderColor: "#E7E0D6", color: "#3D5A80" }}
+              >
+                Save as PDF
+              </button>
             </div>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -937,6 +946,42 @@ export default function AppPage() {
           </aside>
         </div>
       </div>
+      {showPdf && (
+        <PdfModal
+          title="Property Analyser"
+          sections={[
+            {
+              heading: "Purchase Details",
+              items: [
+                { label: "Purchase price", value: formatMoney(currentPurchase) },
+                { label: "Deposit", value: formatMoney(parseMoney(deposit)) },
+                { label: "Stamp duty (est.)", value: formatMoney(currentStampDuty) },
+                { label: "Total buying costs", value: formatMoney(currentBuyingCosts) },
+                { label: "Loan amount", value: formatMoney(currentLoanAmount) },
+              ],
+            },
+            {
+              heading: "Loan Details",
+              items: [
+                { label: "Interest rate", value: `${interestRate}%` },
+                { label: "Loan term", value: `${loanTerm} years` },
+                { label: "Repayment type", value: repaymentType },
+                { label: `${rentFreq} repayment`, value: formatMoney(currentRepayment) },
+              ],
+            },
+            {
+              heading: "Income & Results",
+              items: [
+                { label: `${rentFreq} rent`, value: formatMoney(parseMoney(weeklyRent)) },
+                { label: "Gross yield", value: formatPercent(currentGrossYield) },
+                { label: "Net yield", value: formatPercent(currentNetYield) },
+                { label: `${rentFreq} cashflow`, value: formatMoney(currentCashflow) },
+              ],
+            },
+          ]}
+          onClose={() => setShowPdf(false)}
+        />
+      )}
     </main>
   );
 }

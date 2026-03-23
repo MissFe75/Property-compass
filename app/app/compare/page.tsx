@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import PdfModal from "../../components/PdfModal";
 
 function parseMoney(value: string): number {
   return Number(value.replace(/[^0-9.-]/g, "")) || 0;
@@ -136,6 +137,7 @@ export default function ComparePage() {
   const [nameC, setNameC] = useState("Property C");
 
   const [displayFreq, setDisplayFreq] = useState("Monthly");
+  const [showPdf, setShowPdf] = useState(false);
 
   useEffect(() => {
     function syncFromAnalyser() {
@@ -333,7 +335,10 @@ export default function ComparePage() {
               <h2 className="mb-1 text-xl font-semibold" style={{ color: "#0F172A" }}>Side by side</h2>
               <p className="text-sm" style={{ color: "#64748B" }}>Updates live as you type.</p>
             </div>
-            <FreqToggle options={["Weekly", "Fortnightly", "Monthly"]} value={displayFreq} onChange={setDisplayFreq} />
+            <div className="flex items-center gap-3">
+              <FreqToggle options={["Weekly", "Fortnightly", "Monthly"]} value={displayFreq} onChange={setDisplayFreq} />
+              <button onClick={() => setShowPdf(true)} className="rounded-2xl border px-4 py-2 text-xs font-medium transition hover:bg-white" style={{ borderColor: "#E7E0D6", color: "#3D5A80" }}>Save as PDF</button>
+            </div>
           </div>
 
           {/* Property name header */}
@@ -369,6 +374,60 @@ export default function ComparePage() {
         </div>
 
       </div>
+
+      {showPdf && (
+        <PdfModal
+          title="Compare Properties"
+          onClose={() => setShowPdf(false)}
+          sections={[
+            {
+              heading: nameA,
+              items: [
+                { label: "Purchase price", value: `$${parseMoney(a.price).toLocaleString()}` },
+                { label: "Deposit", value: `$${parseMoney(a.deposit).toLocaleString()}` },
+                { label: "Weekly rent", value: `$${parseMoney(a.rent).toLocaleString()}` },
+                { label: "Annual expenses", value: `$${parseMoney(a.expenses).toLocaleString()}` },
+                { label: "Interest rate", value: `${a.rate}%` },
+                { label: "Loan amount", value: formatMoney(a.loanAmount) },
+                { label: "Monthly repayment", value: formatMoney(a.monthly) },
+                { label: "Weekly cashflow", value: formatMoney(a.weeklyCashflow) },
+                { label: "Gross yield", value: formatPercent(a.grossYield) },
+                { label: "Net yield", value: formatPercent(a.netYield) },
+              ],
+            },
+            {
+              heading: nameB,
+              items: [
+                { label: "Purchase price", value: `$${parseMoney(b.price).toLocaleString()}` },
+                { label: "Deposit", value: `$${parseMoney(b.deposit).toLocaleString()}` },
+                { label: "Weekly rent", value: `$${parseMoney(b.rent).toLocaleString()}` },
+                { label: "Annual expenses", value: `$${parseMoney(b.expenses).toLocaleString()}` },
+                { label: "Interest rate", value: `${b.rate}%` },
+                { label: "Loan amount", value: formatMoney(b.loanAmount) },
+                { label: "Monthly repayment", value: formatMoney(b.monthly) },
+                { label: "Weekly cashflow", value: formatMoney(b.weeklyCashflow) },
+                { label: "Gross yield", value: formatPercent(b.grossYield) },
+                { label: "Net yield", value: formatPercent(b.netYield) },
+              ],
+            },
+            {
+              heading: nameC,
+              items: [
+                { label: "Purchase price", value: `$${parseMoney(c.price).toLocaleString()}` },
+                { label: "Deposit", value: `$${parseMoney(c.deposit).toLocaleString()}` },
+                { label: "Weekly rent", value: `$${parseMoney(c.rent).toLocaleString()}` },
+                { label: "Annual expenses", value: `$${parseMoney(c.expenses).toLocaleString()}` },
+                { label: "Interest rate", value: `${c.rate}%` },
+                { label: "Loan amount", value: formatMoney(c.loanAmount) },
+                { label: "Monthly repayment", value: formatMoney(c.monthly) },
+                { label: "Weekly cashflow", value: formatMoney(c.weeklyCashflow) },
+                { label: "Gross yield", value: formatPercent(c.grossYield) },
+                { label: "Net yield", value: formatPercent(c.netYield) },
+              ],
+            },
+          ]}
+        />
+      )}
     </main>
   );
 }

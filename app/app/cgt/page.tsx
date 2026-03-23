@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PdfModal from "../../components/PdfModal";
 
 function parseMoney(value: string): number {
   return Number(value.replace(/[^0-9.-]/g, "")) || 0;
@@ -121,6 +122,7 @@ function marginalBracket(income: number): string {
 export default function CGTPage() {
   const router = useRouter();
 
+  const [showPdf, setShowPdf] = useState(false);
   const [purchasePrice, setPurchasePrice] = useState("500,000");
   const [deposit, setDeposit] = useState("100,000");
   const [state, setState] = useState("QLD");
@@ -378,7 +380,10 @@ export default function CGTPage() {
           {/* ── Results ── */}
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
-              <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Results</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Results</h2>
+                <button onClick={() => setShowPdf(true)} className="rounded-2xl border px-4 py-2 text-xs font-medium transition hover:bg-white" style={{ borderColor: "#E7E0D6", color: "#3D5A80" }}>Save as PDF</button>
+              </div>
               <p className="mt-2 text-sm" style={{ color: "#64748B" }}>Updates live as you type.</p>
 
               <div className="mt-6 grid grid-cols-2 gap-4">
@@ -419,6 +424,45 @@ export default function CGTPage() {
 
         </div>
       </div>
+      {showPdf && (
+        <PdfModal
+          title="Capital Gains Tax Estimator"
+          onClose={() => setShowPdf(false)}
+          sections={[
+            {
+              heading: "Purchase Details",
+              items: [
+                { label: "Purchase price", value: `$${parseMoney(purchasePrice).toLocaleString()}` },
+                { label: "State", value: state },
+                { label: "Stamp duty (est.)", value: `$${Math.round(currentStampDuty).toLocaleString()}` },
+                { label: "Total buying costs", value: `$${Math.round(currentBuyingCosts).toLocaleString()}` },
+                { label: "Cost base", value: `$${Math.round(costBase).toLocaleString()}` },
+              ],
+            },
+            {
+              heading: "Sale Details",
+              items: [
+                { label: "Sale price", value: `$${parseMoney(salePrice).toLocaleString()}` },
+                { label: "Total selling costs", value: `$${Math.round(currentSaleCosts).toLocaleString()}` },
+                { label: "Net sale price", value: `$${Math.round(netSalePrice).toLocaleString()}` },
+              ],
+            },
+            {
+              heading: "CGT Results",
+              items: [
+                { label: "Capital gain", value: formatMoney(capitalGain) },
+                { label: "Ownership", value: ownership },
+                { label: "Years held", value: `${yearsHeld} yrs` },
+                { label: "50% CGT discount", value: discountEligible ? "Eligible" : "Not eligible" },
+                { label: `Taxable gain${isJoint ? " (total)" : ""}`, value: formatMoney(taxableGain) },
+                { label: `CGT payable${isJoint ? " (total)" : ""}`, value: formatMoney(estimatedTax) },
+                { label: "Effective rate", value: `${effectiveRate.toFixed(1)}%` },
+                { label: "Net profit after CGT", value: formatMoney(netProfit) },
+              ],
+            },
+          ]}
+        />
+      )}
     </main>
   );
 }
