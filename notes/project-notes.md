@@ -105,16 +105,20 @@ The app is fully built and working. All inputs are connected to calculation logi
 
 ---
 
+## Deployment
+
+- **Live at:** sextantdigital.com.au
+- **Hosting:** Vercel (auto-deploys on every GitHub push)
+- **DNS:** Cloudflare managing sextantdigital.com.au → Vercel
+- **Workflow:** push to GitHub → Vercel deploys automatically, no manual steps
+- **TODO:** Set up sextantdigital.au redirects to sextantdigital.com.au (DNS not active yet)
+
+---
+
 ## Next Steps
 
-1. Add **investment indicators** to the results panel:
-   - Yield rating label (low / average / strong)
-   - Cashflow status label (negative / neutral / positive)
-2. Add a **state dropdown for stamp duty** — currently QLD-style only; each state has different tiers
-3. Add more **result outputs**: annual cashflow, total upfront cash required
-4. Add a **calculator switcher** near the top of /app
-5. Build out separate tool pages: mortgage, yield, breakeven, CGT, compare
-6. Deploy to Vercel and move domain from GitHub Pages placeholder
+1. Sort sextantdigital.au redirects when .au DNS is ready
+2. Continue refining calculators
 
 ---
 
