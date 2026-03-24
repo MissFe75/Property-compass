@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Property Compass",
-  description: "Free Australian property investment calculators — analyse, compare and plan with confidence.",
+  title: "Property Compass | Free Australian Property Investment Calculators",
+  description: "Free property investment calculators for Australians. Analyse deals, calculate repayments, rental yield, CGT and compare properties — no signup needed.",
 };
 
 export default function RootLayout({

@@ -384,3 +384,21 @@ Fix layout issues at the structure level — do not patch with extra content.
 **Next steps**
 - Sort sextantdigital.au redirects when .au DNS is ready
 - Continue refining calculators as needed
+
+---
+
+### March 24, 2026 — Google Search Console + housekeeping
+
+**Google Search Console**
+- Site already added, domain verification still processing
+- Next step: Google will provide an HTML meta verification tag → add it to `app/layout.tsx` metadata
+- After verification: submit sitemap (`/sitemap.xml`) and request indexing via URL Inspection tool
+- Note: Google search results still showing old cached description — will update automatically as Google re-crawls
+
+**VS Code + Claude workflow**
+- Claude edits actual project files directly — same files visible in VS Code sidebar, changes happen in real time
+- Shutdown process: Ctrl+C to stop `npm run dev` in terminal, then close VS Code
+
+**Next steps**
+- Add Google Search Console meta verification tag to `app/layout.tsx` (tag provided by Search Console)
+- Sort sextantdigital.au redirects when .au DNS is ready
