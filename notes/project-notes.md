@@ -402,3 +402,84 @@ Fix layout issues at the structure level — do not patch with extra content.
 **Next steps**
 - Add Google Search Console meta verification tag to `app/layout.tsx` (tag provided by Search Console)
 - Sort sextantdigital.au redirects when .au DNS is ready
+
+---
+
+### March 24, 2026 — .au domain, SEO sitemap + meta descriptions
+
+**sextantdigital.au redirect**
+- Registered sextantdigital.au via Crazy Domains
+- Added sextantdigital.au to Cloudflare (nameservers: amit.ns.cloudflare.com + millie.ns.cloudflare.com)
+- Updated nameservers in Crazy Domains to point to Cloudflare
+- Added dummy A record in Cloudflare (192.0.2.1, proxied) so domain resolves
+- Created Page Rule in Cloudflare: `sextantdigital.au/*` → 301 redirect → `https://sextantdigital.com.au/$1`
+- Both domains now live and working ✅
+
+**SEO — sitemap + meta descriptions**
+- Created `app/sitemap.ts` — auto-generates `/sitemap.xml` with all 6 pages
+- Created `app/robots.ts` — allows all bots, points to sitemap
+- Added per-page metadata (title + description) via layout.tsx files in each route:
+  - `app/layout.tsx` — homepage
+  - `app/app/layout.tsx` — Property Analyser
+  - `app/app/mortgage/layout.tsx` — Mortgage Calculator
+  - `app/app/yield/layout.tsx` — Rental Yield Calculator
+  - `app/app/cgt/layout.tsx` — Capital Gains Tax Calculator
+  - `app/app/compare/layout.tsx` — Compare Properties
+- Submitted sitemap to Google Search Console (pending Google fetch)
+
+**Next steps**
+- Check Search Console sitemap status (may take 24–48hrs to go green)
+- Add Google Search Console meta verification tag if still required
+- Consider adding sextantdigital.au to Google Search Console as well
+
+---
+
+### March 25, 2026 — Rename, yield/CGT improvements, copy edits
+
+**Rename: Property Analyser → Property Explorer**
+- Updated across all pages, dropdowns, PDF modal, SEO title, landing page button and tools card
+- Subheading updated to: "Explore what you can afford and how a property investment could perform"
+
+**Hero subheadings added**
+- Added page-specific blurb below h1 on all 4 calculator pages (Mortgage, Yield, CGT, Compare)
+
+**Yield Calculator improvements**
+- Added Loan Costs card with on/off toggle — inputs: loan amount, interest rate, PI/IO, loan term
+- Added Cashflow after mortgage result tile (colour-coded, geared label) when loan toggled on
+- Added excl./incl. mortgage toggle on Net Yield tile (only visible when loan is on)
+- Added descriptor lines under Gross yield ("Rent ÷ purchase price") and Net yield ("After costs, excl. mortgage")
+- Updated depreciation tip copy
+- Updated hero blurb to "factor in all your potential costs"
+
+**Property Explorer improvements**
+- Added excl./incl. mortgage toggle on Net Yield tile (always visible)
+- Added "After costs, excl. mortgage" descriptor under net yield label
+
+**CGT Calculator improvements**
+- Added Medicare Levy (2%) to the CGT payable calculation (both individual and joint)
+- Added "Incl. Medicare Levy (2%)" green label on CGT payable tile
+- Updated sale section subheading to "Estimated sale price and costs of selling"
+- Updated "Sale price" label to "Estimated sale price"
+- Expanded results disclaimer to mention trusts, SMSFs, depreciation recapture, prior year losses
+
+**Landing page copy edits**
+- "flagship analyser" → "flagship explorer"
+- "Everything you need to analyse Aussie property" → "Simple tools to help you buy your first home or your next investment"
+- "Example property analysis" → "Simple example property analysis"
+
+**Footer**
+- Moved Property Compass logo to sit above copyright (below divider)
+- Removed "Built for Aussies"
+- Added "costs may vary" to footer disclaimer
+
+**Committed and pushed to:** `MissFe75/Property-compass` on GitHub
+
+**Google Search Console**
+- Site verified ✅
+- Sitemap submitted successfully: `https://sextantdigital.com.au/sitemap.xml` ✅
+- Indexing in progress — Google will crawl and index pages over the coming days
+- "No active website" AI Overview message will disappear once Google indexes the site
+
+**Next steps**
+- Monitor Search Console for sitemap going green (1–2 days)
+- Continue refining calculators as needed
