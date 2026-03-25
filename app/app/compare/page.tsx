@@ -278,6 +278,7 @@ export default function ComparePage() {
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.75)" }}>Property Compass</p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">Compare Properties</h1>
+            <p className="mt-3 text-base text-white/75 sm:text-lg">Run up to three properties side by side to find the best performer across yield, cashflow, and loan costs.</p>
           </div>
         </div>
       </section>
@@ -288,7 +289,7 @@ export default function ComparePage() {
         <div className="mb-8">
           <p className="mb-3 text-sm font-medium" style={{ color: "#64748B" }}>Navigate your next property move</p>
           <select value="/app/compare" onChange={(e) => router.push(e.target.value)} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none sm:w-auto sm:min-w-[280px]" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
-            <option value="/app">Property Analyser</option>
+            <option value="/app">Property Explorer</option>
             <option value="/app/mortgage">Mortgage Calculator</option>
             <option value="/app/yield">Yield Calculator</option>
             <option value="/app/cgt">Capital Gains Tax Estimator</option>
@@ -315,7 +316,7 @@ export default function ComparePage() {
                 />
               </div>
               <p className="mb-4 rounded-xl px-3 py-2 text-xs" style={{ backgroundColor: "#EEF2FF", color: "#3D5A80", visibility: index === 0 ? "visible" : "hidden" }}>
-                ⟳ Live sync from Property Analyser
+                ⟳ Live sync from Property Explorer
               </p>
               <div className="space-y-4">
                 {inputField("Purchase price", p.price, p.setPrice, true, "", index * 5 + 1)}

@@ -153,6 +153,7 @@ function calculateMonthlyRepayment(
 export default function AppPage() {
   const router = useRouter();
   const [showPdf, setShowPdf] = useState(false);
+  const [netYieldInclMortgage, setNetYieldInclMortgage] = useState(false);
   const [purchasePrice, setPurchasePrice] = useState("650,000");
   const [deposit, setDeposit] = useState("130,000");
   const [conveyancer, setConveyancer] = useState("1,800");
@@ -213,6 +214,8 @@ export default function AppPage() {
   const annualCashflow = currentAnnualNetIncome - currentMonthlyRepayment * 12;
   const currentCashflow = annualCashflow / rentMultiplier;
   const currentRepayment = currentMonthlyRepayment * 12 / rentMultiplier;
+  const netYieldWithMortgage = currentPurchase > 0 ? (annualCashflow / currentPurchase) * 100 : 0;
+  const displayedNetYield = netYieldInclMortgage ? netYieldWithMortgage : currentNetYield;
 
   useEffect(() => {
     const totalExpenses = parseMoney(landlordIns) + parseMoney(bodyCorp) + parseMoney(maintenance) + parseMoney(councilRates) + parseMoney(insurance);
@@ -303,10 +306,10 @@ export default function AppPage() {
             <h1
               className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
             >
-              Property Analyser
+              Property Explorer
             </h1>
             <p className="mt-3 text-base text-white/75 sm:text-lg">
-              Analyse a property deal with clean inputs and useful results at a glance.
+              Explore what you can afford and how a property investment could perform.
             </p>
           </div>
         </div>
@@ -324,7 +327,7 @@ export default function AppPage() {
             className="w-full rounded-2xl border bg-white px-4 py-3 outline-none sm:w-auto sm:min-w-[280px]"
             style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
           >
-            <option value="/app">Property Analyser</option>
+            <option value="/app">Property Explorer</option>
             <option value="/app/mortgage">Mortgage Calculator</option>
             <option value="/app/yield">Yield Calculator</option>
             <option value="/app/cgt">Capital Gains Tax Estimator</option>
@@ -886,26 +889,39 @@ export default function AppPage() {
                 <p className="text-sm" style={{ color: "#64748B" }}>
                   Net yield
                 </p>
+                <div className="mt-1 flex overflow-hidden rounded-xl border text-xs" style={{ borderColor: "#E7E0D6" }}>
+                  {[false, true].map((val) => (
+                    <button key={String(val)} type="button" onClick={() => setNetYieldInclMortgage(val)}
+                      className="flex-1 py-1 font-medium transition"
+                      style={{ backgroundColor: netYieldInclMortgage === val ? "#3D5A80" : "transparent", color: netYieldInclMortgage === val ? "#FFFFFF" : "#94A3B8" }}>
+                      {val ? "incl. mortgage" : "excl. mortgage"}
+                    </button>
+                  ))}
+                </div>
                 <p
                   className="mt-2 text-3xl font-semibold"
                   style={{ color: "#0F172A" }}
                 >
-                  {formatPercent(currentNetYield)}
+                  {formatPercent(displayedNetYield)}
                 </p>
                 <p
                   className="mt-1 text-sm font-medium"
                   style={{
                     color:
-                      currentNetYield < 4
+                      displayedNetYield < 0
+                        ? "#DC2626"
+                        : displayedNetYield < 4
                         ? "#B45309"
-                        : currentNetYield <= 6
+                        : displayedNetYield <= 6
                         ? "#1D4ED8"
                         : "#15803D",
                   }}
                 >
-                  {currentNetYield < 4
+                  {displayedNetYield < 0
+                    ? "Negative return"
+                    : displayedNetYield < 4
                     ? "Low return"
-                    : currentNetYield <= 6
+                    : displayedNetYield <= 6
                     ? "Average return"
                     : "Strong return"}
                 </p>
@@ -948,7 +964,7 @@ export default function AppPage() {
       </div>
       {showPdf && (
         <PdfModal
-          title="Property Analyser"
+          title="Property Explorer"
           sections={[
             {
               heading: "Purchase Details",

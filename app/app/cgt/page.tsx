@@ -155,7 +155,8 @@ export default function CGTPage() {
   const taxableGain = taxableGainPerOwner * (isJoint ? 2 : 1);
 
   const salaryNum = parseMoney(salary);
-  const taxPerOwner = calcIncomeTax(salaryNum + taxableGainPerOwner) - calcIncomeTax(salaryNum);
+  const medicareLevy = taxableGainPerOwner * 0.02;
+  const taxPerOwner = calcIncomeTax(salaryNum + taxableGainPerOwner) - calcIncomeTax(salaryNum) + medicareLevy;
   const estimatedTax = taxPerOwner * (isJoint ? 2 : 1);
   const effectiveRate = taxableGainPerOwner > 0 ? (taxPerOwner / taxableGainPerOwner) * 100 : 0;
   const bracketBefore = marginalBracket(salaryNum);
@@ -193,6 +194,7 @@ export default function CGTPage() {
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.75)" }}>Property Compass</p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">Capital Gains Tax Estimator</h1>
+            <p className="mt-3 text-base text-white/75 sm:text-lg">Estimate how much capital gains tax you&apos;d owe when selling, based on your income and the ATO&apos;s current tax brackets.</p>
           </div>
         </div>
       </section>
@@ -203,7 +205,7 @@ export default function CGTPage() {
         <div className="mb-8">
           <p className="mb-3 text-sm font-medium" style={{ color: "#64748B" }}>Navigate your next property move</p>
           <select value="/app/cgt" onChange={(e) => router.push(e.target.value)} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none sm:w-auto sm:min-w-[280px]" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
-            <option value="/app">Property Analyser</option>
+            <option value="/app">Property Explorer</option>
             <option value="/app/mortgage">Mortgage Calculator</option>
             <option value="/app/yield">Yield Calculator</option>
             <option value="/app/cgt">Capital Gains Tax Estimator</option>
@@ -297,11 +299,11 @@ export default function CGTPage() {
 
             <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
               <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Sale</h2>
-              <p className="mt-2 text-sm" style={{ color: "#64748B" }}>What you sold for and the costs of selling.</p>
+              <p className="mt-2 text-sm" style={{ color: "#64748B" }}>Estimated sale price and costs of selling.</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Sale price</label>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Estimated sale price</label>
                   <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                     <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
                     <input type="text" value={salePrice} onChange={(e) => handleMoneyChange(e, setSalePrice)} tabIndex={4} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(5); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
@@ -400,6 +402,7 @@ export default function CGTPage() {
                   <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>
                     {isJoint ? `Each owner: ${formatMoney(taxPerOwner)} · ` : ""}Effective rate {effectiveRate.toFixed(1)}%{pushedHigher ? ` · pushed into ${bracketAfter}` : ""}
                   </p>
+                  <p className="mt-1 text-xs" style={{ color: "#49A078" }}>Incl. Medicare Levy (2%)</p>
                 </div>
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#49A078", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
@@ -417,7 +420,7 @@ export default function CGTPage() {
               </div>
 
               <p className="mt-4 text-xs leading-5" style={{ color: "#94A3B8" }}>
-                Estimate only. Does not account for capital works deductions, depreciation, or prior year losses. Consult a tax adviser.
+                Estimate only. Does not account for capital works deductions, depreciation recapture, prior year capital losses, or trust and SMSF structures. Consult a registered tax agent or accountant before making any decisions.
               </p>
             </div>
           </div>

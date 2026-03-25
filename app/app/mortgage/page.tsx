@@ -142,6 +142,7 @@ export default function MortgagePage() {
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.75)" }}>Property Compass</p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">Mortgage Calculator</h1>
+            <p className="mt-3 text-base text-white/75 sm:text-lg">Work out your repayments, compare P&amp;I vs interest only, and see how extra payments could get you mortgage-free sooner.</p>
           </div>
         </div>
       </section>
@@ -152,7 +153,7 @@ export default function MortgagePage() {
         <div className="mb-8">
           <p className="mb-3 text-sm font-medium" style={{ color: "#64748B" }}>Navigate your next property move</p>
           <select value="/app/mortgage" onChange={(e) => router.push(e.target.value)} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none sm:w-auto sm:min-w-[280px]" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
-            <option value="/app">Property Analyser</option>
+            <option value="/app">Property Explorer</option>
             <option value="/app/mortgage">Mortgage Calculator</option>
             <option value="/app/yield">Yield Calculator</option>
             <option value="/app/cgt">Capital Gains Tax Estimator</option>

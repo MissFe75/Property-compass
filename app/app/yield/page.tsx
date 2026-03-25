@@ -67,6 +67,13 @@ export default function YieldPage() {
 
   const [incomeFrequency, setIncomeFrequency] = useState("Weekly");
 
+  const [includeLoan, setIncludeLoan] = useState(false);
+  const [loanAmount, setLoanAmount] = useState("520,000");
+  const [interestRate, setInterestRate] = useState("6.50");
+  const [loanTerm, setLoanTerm] = useState("30");
+  const [repaymentType, setRepaymentType] = useState("PI");
+  const [netYieldInclMortgage, setNetYieldInclMortgage] = useState(false);
+
   const rentMultiplier = rentFrequency === "Weekly" ? 52 : rentFrequency === "Fortnightly" ? 26 : 1;
   const rentSuffix = rentFrequency === "Weekly" ? "/wk" : rentFrequency === "Fortnightly" ? "/fn" : "/yr";
   const expenseMultiplier = expenseFrequency === "Weekly" ? 52 : expenseFrequency === "Fortnightly" ? 26 : 1;
@@ -81,6 +88,21 @@ export default function YieldPage() {
   const netAnnualIncome = annualRent - totalExpenses;
   const grossYield = price > 0 ? (annualRent / price) * 100 : 0;
   const netYield = price > 0 ? (netAnnualIncome / price) * 100 : 0;
+
+  const loan = parseMoney(loanAmount);
+  const annualRate = parsePercent(interestRate) / 100;
+  const monthlyRate = annualRate / 12;
+  const months = parseInt(loanTerm) * 12;
+  const monthlyRepayment = repaymentType === "IO"
+    ? loan * monthlyRate
+    : monthlyRate > 0 && months > 0
+      ? loan * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
+      : 0;
+  const annualLoanCost = monthlyRepayment * 12;
+  const cashflowAfterMortgage = netAnnualIncome - annualLoanCost;
+  const weeklyCashflow = cashflowAfterMortgage / 52;
+  const netYieldWithMortgage = price > 0 ? (cashflowAfterMortgage / price) * 100 : 0;
+  const displayedNetYield = includeLoan && netYieldInclMortgage ? netYieldWithMortgage : netYield;
 
   const freqDivisor = incomeFrequency === "Weekly" ? 52 : incomeFrequency === "Fortnightly" ? 26 : 1;
   const freqLabel = incomeFrequency === "Weekly" ? "/wk" : incomeFrequency === "Fortnightly" ? "/fn" : "/yr";
@@ -116,6 +138,7 @@ export default function YieldPage() {
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.75)" }}>Property Compass</p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">Yield Calculator</h1>
+            <p className="mt-3 text-base text-white/75 sm:text-lg">Calculate gross and net rental yield, factor in all your potential costs, and see what a property really earns.</p>
           </div>
         </div>
       </section>
@@ -126,7 +149,7 @@ export default function YieldPage() {
         <div className="mb-8">
           <p className="mb-3 text-sm font-medium" style={{ color: "#64748B" }}>Navigate your next property move</p>
           <select value="/app/yield" onChange={(e) => router.push(e.target.value)} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none sm:w-auto sm:min-w-[280px]" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
-            <option value="/app">Property Analyser</option>
+            <option value="/app">Property Explorer</option>
             <option value="/app/mortgage">Mortgage Calculator</option>
             <option value="/app/yield">Yield Calculator</option>
             <option value="/app/cgt">Capital Gains Tax Estimator</option>
@@ -238,6 +261,66 @@ export default function YieldPage() {
               </div>
             </div>
 
+            {/* ── Loan Costs ── */}
+            <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "#FAF7F2", borderColor: "#E7E0D6" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold" style={{ color: "#0F172A" }}>Loan Costs</h2>
+                  <p className="mt-1 text-sm" style={{ color: "#64748B" }}>Include your mortgage to see true cashflow.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIncludeLoan(!includeLoan)}
+                  className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors"
+                  style={{ backgroundColor: includeLoan ? "#3D5A80" : "#CBD5E1" }}
+                >
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform" style={{ transform: includeLoan ? "translateX(22px)" : "translateX(2px)" }} />
+                </button>
+              </div>
+
+              {includeLoan && (
+                <div className="mt-6 space-y-5">
+                  <div className="flex w-full overflow-hidden rounded-2xl border bg-white" style={{ borderColor: "#E7E0D6" }}>
+                    {["PI", "IO"].map((type) => (
+                      <button key={type} type="button" onClick={() => setRepaymentType(type)}
+                        className="flex-1 py-3 text-sm font-medium transition"
+                        style={{ backgroundColor: repaymentType === type ? "#3D5A80" : "transparent", color: repaymentType === type ? "#FFFFFF" : "#64748B" }}>
+                        {type === "PI" ? "Principal & Interest" : "Interest Only"}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Loan amount</label>
+                      <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                        <span className="mr-1 shrink-0 select-none" style={{ color: "#64748B" }}>$</span>
+                        <input type="text" value={loanAmount} onChange={(e) => handleMoneyChange(e, setLoanAmount)} tabIndex={11} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Interest rate</label>
+                      <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                        <input type="text" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} tabIndex={12} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
+                        <span className="ml-1 shrink-0 select-none" style={{ color: "#64748B" }}>%</span>
+                      </div>
+                    </div>
+
+                    {repaymentType === "PI" && (
+                      <div>
+                        <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Loan term</label>
+                        <div className="flex items-center rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
+                          <input type="text" value={loanTerm} onChange={(e) => setLoanTerm(e.target.value)} tabIndex={13} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
+                          <span className="ml-1 shrink-0 select-none text-sm" style={{ color: "#64748B" }}>yrs</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* ── Results ── */}
@@ -265,26 +348,49 @@ export default function YieldPage() {
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#49A078", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
                   <p className="text-sm" style={{ color: "#64748B" }}>Gross yield</p>
+                  <p className="text-xs" style={{ color: "#94A3B8" }}>Rent ÷ purchase price</p>
                   <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatPercent(grossYield)}</p>
                   <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>{grossYield < 4 ? "Low return" : grossYield <= 6 ? "Average return" : "Strong return"}</p>
                 </div>
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
                   <p className="text-sm" style={{ color: "#64748B" }}>Net yield</p>
-                  <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatPercent(netYield)}</p>
-                  <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>{netYield < 4 ? "Low return" : netYield <= 6 ? "Average return" : "Strong return"}</p>
+                  {includeLoan ? (
+                    <div className="mt-1 flex overflow-hidden rounded-xl border text-xs" style={{ borderColor: "#E7E0D6" }}>
+                      {[false, true].map((val) => (
+                        <button key={String(val)} type="button" onClick={() => setNetYieldInclMortgage(val)}
+                          className="flex-1 py-1 font-medium transition"
+                          style={{ backgroundColor: netYieldInclMortgage === val ? "#3D5A80" : "transparent", color: netYieldInclMortgage === val ? "#FFFFFF" : "#94A3B8" }}>
+                          {val ? "incl. mortgage" : "excl. mortgage"}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs" style={{ color: "#94A3B8" }}>After costs, excl. mortgage</p>
+                  )}
+                  <p className="mt-3 text-2xl font-semibold" style={{ color: "#0F172A" }}>{formatPercent(displayedNetYield)}</p>
+                  <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>{displayedNetYield < 0 ? "Negative return" : displayedNetYield < 4 ? "Low return" : displayedNetYield <= 6 ? "Average return" : "Strong return"}</p>
                 </div>
 
                 <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: netAnnualIncome >= 0 ? "#49A078" : "#E53E3E", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
                   <p className="text-sm" style={{ color: "#64748B" }}>Net income</p>
+                  <p className="text-xs" style={{ color: "#94A3B8" }}>After expenses, before mortgage</p>
                   <p className="mt-3 text-2xl font-semibold" style={{ color: netAnnualIncome >= 0 ? "#49A078" : "#E53E3E" }}>{formatMoney(netAnnualIncome / freqDivisor)}{freqLabel}</p>
-                  <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>After expenses, before mortgage</p>
                 </div>
+
+                {includeLoan && (
+                  <div className="rounded-3xl border-t-4 p-5" style={{ borderColor: cashflowAfterMortgage >= 0 ? "#49A078" : "#E53E3E", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                    <p className="text-sm" style={{ color: "#64748B" }}>Cashflow after mortgage</p>
+                    <p className="text-xs" style={{ color: "#94A3B8" }}>After costs & repayments</p>
+                    <p className="mt-3 text-2xl font-semibold" style={{ color: cashflowAfterMortgage >= 0 ? "#49A078" : "#E53E3E" }}>{formatMoney(cashflowAfterMortgage / freqDivisor)}{freqLabel}</p>
+                    <p className="mt-1 text-xs" style={{ color: "#94A3B8" }}>{weeklyCashflow < -10 ? "Negatively geared" : weeklyCashflow <= 10 ? "Roughly neutral" : "Positively geared"}</p>
+                  </div>
+                )}
 
               </div>
 
               <div className="mt-4 rounded-2xl px-4 py-3 text-xs leading-5" style={{ backgroundColor: "#EEF2FF", color: "#3D5A80" }}>
-                <strong>Depreciation tip:</strong> A quantity surveyor&apos;s depreciation schedule can reduce your taxable income by thousands each year — especially on newer or recently renovated properties. It&apos;s often not included in yield calculations but can significantly improve your real after-tax return.
+                <strong>Depreciation tip:</strong> A quantity surveyor&apos;s depreciation schedule can reduce your taxable income by thousands each year and significantly improve your real after-tax return — especially on newer or recently renovated properties. A depreciation schedule is not included in this yield calculation.
               </div>
 
             </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const tools = [
   {
-    title: "Property Analyser",
+    title: "Property Explorer",
     description:
       "Run a full snapshot of purchase price, deposit, repayments, yield and weekly cash flow.",
     href: "/app",
@@ -218,7 +218,7 @@ export default function HomePage() {
               className="text-sm font-semibold uppercase tracking-[0.22em]"
               style={{ color: "#7C8698" }}
             >
-              Example property analysis
+              Simple example property analysis
             </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -247,7 +247,7 @@ export default function HomePage() {
               style={{ backgroundColor: "#FFFDF9", borderColor: "#E7E0D6" }}
             >
               <p className="text-sm leading-7" style={{ color: "#64748B" }}>
-                Start with the flagship analyser, then branch into mortgage,
+                Start with the flagship explorer, then branch into mortgage,
                 yield, CGT and comparison tools as needed.
               </p>
               <Link
@@ -255,7 +255,7 @@ export default function HomePage() {
                 className="mt-5 inline-flex rounded-2xl px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
                 style={{ backgroundColor: "#3D5A80" }}
               >
-                Open Property Analyser
+                Open Property Explorer
               </Link>
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function HomePage() {
           className="mt-5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl"
           style={{ color: "#0F172A" }}
         >
-          Everything you need to analyse Aussie property
+          Simple tools to help you buy your first home or your next investment
         </h2>
         <p className="mt-6 max-w-2xl text-lg leading-9" style={{ color: "#4B5563" }}>
           Five purpose-built calculators in one app — all free, all instant.
