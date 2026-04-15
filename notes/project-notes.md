@@ -579,3 +579,32 @@ Fix layout issues at the structure level — do not patch with extra content.
 **Next steps**
 - Monitor Search Console over coming days — redirect errors should clear
 - Set up Google Analytics (go to analytics.google.com, log in with Sextantdigital Gmail)
+
+---
+
+### April 15, 2026 — SEO content + sitemap fix
+
+**Problem: redirect errors in Search Console**
+- Search Console showing redirect errors for 5 calculator pages and 2 "page with redirect, not started"
+- Not a code bug — residual from the DNS recovery period (March 30–31) when Google cached bad redirect chains
+- Canonical URLs (added April 7) are the correct fix; errors will clear as Google re-crawls
+- Re-requested indexing for all 5 calculator pages via URL Inspection tool ✅
+
+**Sitemap fix**
+- `sitemap.ts` was using `lastModified: new Date()` — this told Google every page was modified today, every day
+- Changed to a fixed date (`2026-04-15`) so the sitemap is stable and accurate
+
+**SEO content sections added to all 5 calculator pages**
+- Each page now has a 3-column explanatory section below the calculator covering key concepts
+  - Property Explorer: stamp duty, gross vs net yield, negative gearing explained
+  - Mortgage Calculator: P&I vs Interest Only, extra repayments, after-tax cost for investors
+  - Yield Calculator: gross vs net yield, what's a good yield in Australia, depreciation tip
+  - CGT Calculator: the 50% discount, how CGT is calculated, main residence exemption
+  - Compare Properties: colour coding explained, which metrics matter, live sync from Explorer
+- Gives Google substantive text to index on each page (previously pages were mostly forms with minimal text)
+
+**Committed and pushed to:** `MissFe75/Property-compass` on GitHub
+
+**Next steps**
+- Monitor Search Console over coming weeks — redirect errors should clear and new content should help indexing
+- Set up Google Analytics (go to analytics.google.com, log in with Sextantdigital Gmail)
