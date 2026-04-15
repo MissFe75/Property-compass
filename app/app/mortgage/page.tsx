@@ -340,6 +340,28 @@ export default function MortgagePage() {
 
         </div>
       </div>
+
+      {/* ── SEO Content ── */}
+      <div className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
+          <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>Understanding your mortgage</h2>
+          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Principal &amp; Interest vs Interest Only</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>With Principal &amp; Interest, each repayment reduces your loan balance so you build equity over time. Interest Only means your repayments cover only the interest — the loan amount stays the same. IO is popular with investors because repayments are lower and may improve cashflow, but you&apos;ll pay more interest overall and won&apos;t reduce the underlying debt.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>How extra repayments save you thousands</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Because mortgage interest is calculated on your outstanding balance, extra repayments directly reduce future interest charges. Even modest additional payments — say $200 a fortnight — can cut years off a 30-year loan and save tens of thousands in interest. The Pay Off Sooner section shows exactly how much you&apos;d save with your own numbers.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>After-tax cost for investors</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>If you&apos;re borrowing to invest, the interest on your loan is generally tax-deductible in Australia. This means your real out-of-pocket cost is lower than the headline repayment figure. Toggle to Investment mode and select your marginal tax rate to see your actual after-tax repayment — the amount that truly comes out of your pocket each month.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {showPdf && (
         <PdfModal
           title="Mortgage Calculator"

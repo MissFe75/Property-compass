@@ -962,6 +962,28 @@ export default function AppPage() {
           </aside>
         </div>
       </div>
+
+      {/* ── SEO Content ── */}
+      <div className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
+          <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>How to analyse an investment property</h2>
+          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>What stamp duty costs and why it matters</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Stamp duty (transfer duty in Queensland) is a state government tax paid when you buy property. It&apos;s calculated as a percentage of the purchase price and adds $10,000–$30,000+ to your upfront costs depending on the price and state. Because it increases your total cost base, it reduces your effective yield and affects your borrowing position. This calculator estimates stamp duty using Queensland rates.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Gross yield vs net yield</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Gross yield is your annual rent divided by the purchase price — a useful starting point. Net yield goes further by deducting all your ongoing holding costs: management fees, insurance, council rates, maintenance, and vacancy allowance. Net yield is a far more realistic measure of what a property actually earns and the number to focus on when deciding whether an investment stacks up.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Negative gearing explained</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>A property is negatively geared when your costs — including mortgage repayments — exceed your rental income. In Australia, this shortfall is generally tax-deductible, which reduces the real after-tax cost. Most investment properties in capital cities are negatively geared, with investors accepting the cashflow deficit in exchange for expected long-term capital growth. Positive gearing means rental income exceeds all your costs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {showPdf && (
         <PdfModal
           title="Property Explorer"

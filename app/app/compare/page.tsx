@@ -376,6 +376,27 @@ export default function ComparePage() {
 
       </div>
 
+      {/* ── SEO Content ── */}
+      <div className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
+          <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>How to compare investment properties</h2>
+          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>What the colour coding means</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>The green and red colour coding is relative to your three properties — green is the best performer in that metric, red is the weakest. Loan amount and repayments are ranked in isolation (lower is better). Yield and cashflow use absolute benchmarks: the 4% and 6% thresholds for yield, and ±$10 per week as the dividing line between negative, neutral, and positive cashflow.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Which metrics matter most?</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>It depends on your strategy. Net yield measures how efficiently a property generates income relative to its price. Weekly cashflow shows what you&apos;ll be out of pocket after costs and repayments — important for budgeting month to month. If you&apos;re focused on capital growth, you might accept lower yield in exchange for a stronger suburb. The comparison table makes those trade-offs visible at a glance.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Live sync from Property Explorer</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Property A automatically picks up your saved inputs from the Property Explorer. Any changes you make there — purchase price, rent, expenses, loan details — sync here instantly. This makes it easy to run what-if scenarios without re-entering data across both tools. Properties B and C are entered directly in the comparison table above.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {showPdf && (
         <PdfModal
           title="Compare Properties"

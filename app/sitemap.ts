@@ -4,37 +4,37 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: "https://sextantdigital.com.au",
-      lastModified: new Date(),
+      lastModified: new Date("2026-04-15"),
       changeFrequency: "monthly",
       priority: 1,
     },
     {
       url: "https://sextantdigital.com.au/app",
-      lastModified: new Date(),
+      lastModified: new Date("2026-04-15"),
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
       url: "https://sextantdigital.com.au/app/mortgage",
-      lastModified: new Date(),
+      lastModified: new Date("2026-04-15"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: "https://sextantdigital.com.au/app/yield",
-      lastModified: new Date(),
+      lastModified: new Date("2026-04-15"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: "https://sextantdigital.com.au/app/cgt",
-      lastModified: new Date(),
+      lastModified: new Date("2026-04-15"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: "https://sextantdigital.com.au/app/compare",
-      lastModified: new Date(),
+      lastModified: new Date("2026-04-15"),
       changeFrequency: "monthly",
       priority: 0.8,
     },

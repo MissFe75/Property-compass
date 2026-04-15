@@ -398,6 +398,28 @@ export default function YieldPage() {
 
         </div>
       </div>
+
+      {/* ── SEO Content ── */}
+      <div className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
+          <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>Understanding rental yield</h2>
+          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Gross yield vs net yield</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Gross yield is simply annual rent divided by the purchase price — the headline figure you&apos;ll see on property listings. Net yield goes further, deducting vacancy, property management fees, council rates, insurance, and other holding costs. Net yield is what you actually earn and the number that matters when comparing investment properties.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>What&apos;s a good rental yield in Australia?</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Gross yields in most Australian capital cities range from 3% to 6%. High-growth suburbs in inner Sydney and Melbourne often sit at the lower end, while Queensland, regional, and outer-metro areas can offer 5–7%+. As a general guide, a net yield of 4% or more is considered a reasonable return for an Australian investment property.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Don&apos;t forget depreciation</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>A quantity surveyor&apos;s depreciation schedule lets you claim wear and tear on the building and fixtures as a tax deduction each year. On a newer property this can be worth $5,000–$15,000+ in deductions annually — significantly improving your real after-tax return. Depreciation isn&apos;t included in this yield calculation but is worth factoring in separately when evaluating a property.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {showPdf && (
         <PdfModal
           title="Yield Calculator"

@@ -427,6 +427,28 @@ export default function CGTPage() {
 
         </div>
       </div>
+
+      {/* ── SEO Content ── */}
+      <div className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
+          <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>Capital Gains Tax on Australian property</h2>
+          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>The 50% CGT discount</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>If you&apos;ve owned an investment property for more than 12 months, you&apos;re generally entitled to the ATO&apos;s 50% CGT discount for individuals. This means only half your capital gain is added to your taxable income. For example, a $300,000 capital gain becomes a $150,000 taxable gain. The discount applies to individuals and most trusts, but not to companies.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>How CGT is calculated</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Your capital gain is the sale price minus your cost base — which includes the purchase price, stamp duty, legal fees, and any capital improvements you&apos;ve made. The taxable gain is then added to your ordinary income for that financial year and taxed at your marginal rate. Because a large gain can push you into a higher tax bracket, the salary field helps estimate the real impact.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Main residence and exemptions</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>CGT generally doesn&apos;t apply to your primary place of residence under the main residence exemption. But if you&apos;ve rented the property at any point or used it for business purposes, partial CGT may apply. Prior capital losses, depreciation recapture, and SMSF or trust structures all have different rules. Always check with a registered tax agent before making decisions based on a CGT estimate.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {showPdf && (
         <PdfModal
           title="Capital Gains Tax Estimator"

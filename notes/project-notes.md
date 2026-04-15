@@ -483,3 +483,99 @@ Fix layout issues at the structure level — do not patch with extra content.
 **Next steps**
 - Monitor Search Console for sitemap going green (1–2 days)
 - Continue refining calculators as needed
+
+---
+
+### March 30, 2026 — Cloudflare recovery + email fix
+
+**Cloudflare domains recovered**
+- Received scam-looking email about Cloudflare deleting sextantdigital — turned out to be real (nameservers had not been updated in time)
+- Both sextantdigital.com.au and sextantdigital.au zones had been deleted from Cloudflare
+- Re-added both domains to Cloudflare — all DNS records were auto-detected correctly
+- Updated nameservers in Crazy Domains for both domains:
+  - sextantdigital.com.au → kyle.ns.cloudflare.com + meg.ns.cloudflare.com
+  - sextantdigital.au → amber.ns.cloudflare.com + lewis.ns.cloudflare.com
+- Site remained live throughout (Vercel was still serving it directly)
+- DNS propagation in progress — may take up to 48 hours to fully resolve
+
+**Email link fix**
+- Contact email link in footer was opening Apple Mail "Add Account" dialog (on Mac and phone)
+- Changed mailto: link to open Gmail compose window instead
+- Updated `app/components/Footer.tsx` — affects all pages (shared footer)
+- Committed and pushed to GitHub
+
+**Google Search Console**
+- Sitemap confirmed as Success ✅
+- Google is crawling the site — pages will appear in search results over coming weeks
+
+**Next steps**
+- Set up Google Analytics (go to analytics.google.com, log in with Sextantdigital Gmail)
+- Check DNS has fully propagated for both domains
+- Sort sextantdigital.au redirect page rule in Cloudflare (was deleted with the zone — needs to be recreated)
+
+---
+
+### March 31, 2026 — DNS fix + .au redirect restored
+
+**DNS cleanup**
+- Site was showing old "Work in progress" GitHub Pages placeholder
+- Root cause: when Cloudflare re-added zones after deletion, it auto-detected old GitHub Pages A records (185.199.x.x) alongside the Vercel one (76.76.21.21)
+- Fix: deleted the 4 GitHub Pages A records, turned proxy off on the Vercel A record, updated www CNAME from missfe75.github.io to cname.vercel-dns.com
+- Site came back immediately ✅
+
+**sextantdigital.au redirect restored**
+- Recreated Page Rule in the sextantdigital.au Cloudflare zone:
+  - `sextantdigital.au/*` → 301 → `https://sextantdigital.com.au/$1`
+- Also created a proxied DNS record for sextantdigital.au (required for the Page Rule to fire)
+- Both domains fully working ✅
+
+**Next steps**
+- Set up Google Analytics (go to analytics.google.com, log in with Sextantdigital Gmail)
+
+---
+
+### April 4, 2026 — Google Search Console indexing
+
+**Page with redirect warning**
+- Search Console showed 1 "Page with redirect" — turned out to be `https://sextantdigital.com.au/` (trailing slash) and `https://www.sextantdigital.com.au/` (www version)
+- Both are expected redirect variants — Vercel strips trailing slashes and redirects www to non-www
+- Not a problem — Google correctly identifies the canonical URL and indexes that instead
+
+**Discovered - currently not indexed (5 pages)**
+- Google found all 6 pages via the sitemap (Status: Success ✅) but hadn't crawled the calculator pages yet
+- Normal for a new site — pages sit in Google's crawl queue before being indexed
+- Used URL Inspection tool to request indexing for all 5 unindexed pages:
+  - `https://sextantdigital.com.au/app`
+  - `https://sextantdigital.com.au/app/mortgage`
+  - `https://sextantdigital.com.au/app/yield`
+  - `https://sextantdigital.com.au/app/cgt`
+  - `https://sextantdigital.com.au/app/compare`
+
+**Next steps**
+- Check Search Console in a few days — pages should move from "Discovered" to "Indexed"
+- Set up Google Analytics (go to analytics.google.com, log in with Sextantdigital Gmail)
+
+---
+
+### April 7, 2026 — Google Search Console redirect errors
+
+**Redirect error notification**
+- Search Console sent 3 notifications on April 6: redirect error detected → briefly fixed → new redirect error
+- Root cause: the DNS recovery period (March 30–31) caused Google to hit redirect loops while DNS was propagating (old GitHub Pages A records still in cache)
+- Not a code bug — a side effect of the Cloudflare zone deletion/recovery
+
+**Fix: canonical URLs added to all 6 layout files**
+- Added `alternates: { canonical: "..." }` to the metadata in each layout:
+  - `app/layout.tsx` → `https://sextantdigital.com.au`
+  - `app/app/layout.tsx` → `https://sextantdigital.com.au/app`
+  - `app/app/mortgage/layout.tsx` → `https://sextantdigital.com.au/app/mortgage`
+  - `app/app/yield/layout.tsx` → `https://sextantdigital.com.au/app/yield`
+  - `app/app/cgt/layout.tsx` → `https://sextantdigital.com.au/app/cgt`
+  - `app/app/compare/layout.tsx` → `https://sextantdigital.com.au/app/compare`
+- This adds a `<link rel="canonical">` tag to each page's HTML, telling Google exactly which URL is correct — eliminates ambiguity from www, trailing slash, and redirect variants
+- Committed and pushed to GitHub → Vercel auto-deployed
+- Re-requested indexing for all 6 pages via Search Console URL Inspection tool
+
+**Next steps**
+- Monitor Search Console over coming days — redirect errors should clear
+- Set up Google Analytics (go to analytics.google.com, log in with Sextantdigital Gmail)
