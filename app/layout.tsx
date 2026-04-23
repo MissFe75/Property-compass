@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Footer from "./components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,7 +16,7 @@ export const metadata: Metadata = {
   title: "Property Compass | Free Australian Property Investment Calculators",
   description: "Free property investment calculators for Australians. Analyse deals, calculate repayments, rental yield, CGT and compare properties — no signup needed.",
   alternates: {
-    canonical: "https://sextantdigital.com.au",
+    canonical: "https://propertycompass.sextantdigital.com.au",
   },
 };
 
@@ -28,11 +27,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
-        <Footer />
       </body>
     </html>
   );

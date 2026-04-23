@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://sextantdigital.com.au/sitemap.xml",
+    sitemap: "https://propertycompass.sextantdigital.com.au/sitemap.xml",
   };
 }
