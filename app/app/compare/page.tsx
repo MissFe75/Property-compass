@@ -56,15 +56,85 @@ function calculateMonthlyRepayment(loan: number, rate: number, years: number): n
     (Math.pow(1 + monthlyRate, months) - 1);
 }
 
+type PropertyType = "Established" | "New build" | "Vacant land";
+const PROPERTY_TYPES: PropertyType[] = ["Established", "New build", "Vacant land"];
+const STATES = ["QLD", "NSW", "VIC", "SA", "WA", "ACT", "NT", "TAS"];
+
+// First Home Owner Grant (FHOG) — a cash grant that reduces the effective loan amount. Hard price
+// cap (no partial/taper), and in every state that offers one it only applies to new builds and
+// vacant land, never established homes. As at July 2026. null = no grant modelled (ACT abolished
+// its FHOG in 2019 in favour of a stamp duty exemption instead; NT/TAS have caveats — see note text).
+const FHB_GRANTS: Record<string, Record<PropertyType, { amount: number; cap: number } | null>> = {
+  NSW: { Established: null, "New build": { amount: 10000, cap: 600000 }, "Vacant land": { amount: 10000, cap: 750000 } },
+  QLD: { Established: null, "New build": { amount: 30000, cap: 750000 }, "Vacant land": { amount: 30000, cap: 750000 } },
+  VIC: { Established: null, "New build": { amount: 10000, cap: 750000 }, "Vacant land": { amount: 10000, cap: 750000 } },
+  SA: { Established: null, "New build": { amount: 15000, cap: Infinity }, "Vacant land": { amount: 15000, cap: Infinity } },
+  WA: { Established: null, "New build": { amount: 10000, cap: 800000 }, "Vacant land": { amount: 10000, cap: 800000 } },
+  TAS: { Established: null, "New build": { amount: 20000, cap: Infinity }, "Vacant land": { amount: 20000, cap: Infinity } },
+  NT: { Established: null, "New build": { amount: 80000, cap: Infinity }, "Vacant land": { amount: 80000, cap: Infinity } },
+  ACT: { Established: null, "New build": null, "Vacant land": null },
+};
+
+function getFhbGrantAmount(
+  state: string,
+  purchasePrice: number,
+  propertyType: PropertyType,
+  isFirstHomeBuyer: boolean,
+  includeGrant: boolean
+): number {
+  if (!isFirstHomeBuyer || !includeGrant) return 0;
+  const grant = FHB_GRANTS[state]?.[propertyType];
+  if (!grant) return 0;
+  if (purchasePrice > grant.cap) return 0;
+  return grant.amount;
+}
+
+function getFhbGrantNote(
+  state: string,
+  purchasePrice: number,
+  propertyType: PropertyType,
+  isFirstHomeBuyer: boolean
+): string | null {
+  if (!isFirstHomeBuyer) return null;
+  const typeLabel = propertyType.toLowerCase();
+
+  if (state === "ACT") {
+    return "ACT abolished its First Home Owner Grant in 2019 — it relies solely on a stamp duty exemption instead (not modelled here).";
+  }
+  if (propertyType === "Established") {
+    return "First Home Owner Grants only apply to new builds and vacant land in every state — established homes aren't eligible anywhere.";
+  }
+
+  const grant = FHB_GRANTS[state]?.[propertyType];
+  if (!grant) return null;
+
+  if (purchasePrice > grant.cap) {
+    return `Not eligible — cap is ${formatMoney(grant.cap)} for ${typeLabel} purchases in ${state} (hard cap, no partial grant above it).`;
+  }
+
+  let extra = "";
+  if (state === "WA") extra = " (cap is $1,000,000 north of the 26th parallel — not distinguished here)";
+  if (state === "NT") extra = " — combines two grants with their own conditions, ending 30 Sept 2026";
+  if (state === "TAS") extra = " (drops to $20,000 for contracts from 1 July 2026)";
+
+  return `${formatMoney(grant.amount)} grant${extra}.`;
+}
+
 function useProperty(defaults: { price: string; deposit: string; rent: string; expenses: string; rate: string }) {
   const [price, setPrice] = useState(defaults.price);
   const [deposit, setDeposit] = useState(defaults.deposit);
   const [rent, setRent] = useState(defaults.rent);
   const [expenses, setExpenses] = useState(defaults.expenses);
   const [rate, setRate] = useState(defaults.rate);
+  const [state, setState] = useState("QLD");
+  const [isFirstHomeBuyer, setIsFirstHomeBuyer] = useState(false);
+  const [propertyType, setPropertyType] = useState<PropertyType>("Established");
+  const [includeFhbGrant, setIncludeFhbGrant] = useState(true);
 
   const priceNum = parseMoney(price);
-  const loanAmount = priceNum - parseMoney(deposit);
+  const fhbGrantAmount = getFhbGrantAmount(state, priceNum, propertyType, isFirstHomeBuyer, includeFhbGrant);
+  const fhbGrantNote = getFhbGrantNote(state, priceNum, propertyType, isFirstHomeBuyer);
+  const loanAmount = priceNum - parseMoney(deposit) - fhbGrantAmount;
   const annualRent = parseMoney(rent) * 52;
   const annualExpenses = parseMoney(expenses);
   const netIncome = annualRent - annualExpenses;
@@ -73,7 +143,12 @@ function useProperty(defaults: { price: string; deposit: string; rent: string; e
   const netYield = priceNum > 0 ? (netIncome / priceNum) * 100 : 0;
   const weeklyCashflow = (netIncome - monthly * 12) / 52;
 
-  return { price, setPrice, deposit, setDeposit, rent, setRent, expenses, setExpenses, rate, setRate, loanAmount, monthly, grossYield, netYield, weeklyCashflow };
+  return {
+    price, setPrice, deposit, setDeposit, rent, setRent, expenses, setExpenses, rate, setRate,
+    state, setState, isFirstHomeBuyer, setIsFirstHomeBuyer, propertyType, setPropertyType,
+    includeFhbGrant, setIncludeFhbGrant, fhbGrantAmount, fhbGrantNote,
+    loanAmount, monthly, grossYield, netYield, weeklyCashflow,
+  };
 }
 
 function InfoTip({ text }: { text: string }) {
@@ -144,7 +219,7 @@ export default function ComparePage() {
       try {
         const saved = localStorage.getItem("pc_analyser");
         if (!saved) return;
-        const { price, deposit, rent, rentFreq, expenses, rate } = JSON.parse(saved);
+        const { price, deposit, rent, rentFreq, expenses, rate, state, isFirstHomeBuyer, propertyType, includeFhbGrant } = JSON.parse(saved);
         if (price) a.setPrice(price);
         if (deposit) a.setDeposit(deposit);
         if (rent) {
@@ -154,6 +229,10 @@ export default function ComparePage() {
         }
         if (expenses) a.setExpenses(expenses);
         if (rate) a.setRate(rate);
+        if (state) a.setState(state);
+        if (typeof isFirstHomeBuyer === "boolean") a.setIsFirstHomeBuyer(isFirstHomeBuyer);
+        if (propertyType) a.setPropertyType(propertyType as PropertyType);
+        if (typeof includeFhbGrant === "boolean") a.setIncludeFhbGrant(includeFhbGrant);
       } catch {}
     }
     syncFromAnalyser();
@@ -323,6 +402,42 @@ export default function ComparePage() {
                 {inputField("Weekly rent", p.rent, p.setRent, true, "", index * 5 + 3)}
                 {inputField("Annual expenses", p.expenses, p.setExpenses, true, "", index * 5 + 4)}
                 {inputField("Interest rate", p.rate, p.setRate, false, "%", index * 5 + 5)}
+
+                <div>
+                  <label className="mb-2 block text-xs font-medium" style={{ color: "#3D5A80" }}>State</label>
+                  <select value={p.state} onChange={(e) => p.setState(e.target.value)} className="w-full rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
+                    {STATES.map((s) => (<option key={s} value={s}>{s}</option>))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id={`fhb-toggle-${name}`} checked={p.isFirstHomeBuyer} onChange={(e) => p.setIsFirstHomeBuyer(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: "#3D5A80" }} />
+                  <label htmlFor={`fhb-toggle-${name}`} className="text-xs font-medium" style={{ color: "#3D5A80" }}>First home buyer</label>
+                </div>
+
+                {p.isFirstHomeBuyer && (
+                  <div>
+                    <label className="mb-2 block text-xs font-medium" style={{ color: "#3D5A80" }}>Property type</label>
+                    <select value={p.propertyType} onChange={(e) => p.setPropertyType(e.target.value as PropertyType)} className="w-full rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
+                      {PROPERTY_TYPES.map((t) => (<option key={t} value={t}>{t}</option>))}
+                    </select>
+                  </div>
+                )}
+
+                {p.isFirstHomeBuyer && (
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id={`fhb-grant-toggle-${name}`} checked={p.includeFhbGrant} onChange={(e) => p.setIncludeFhbGrant(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: "#3D5A80" }} />
+                    <label htmlFor={`fhb-grant-toggle-${name}`} className="text-xs font-medium" style={{ color: "#3D5A80" }}>Include FHOG grant</label>
+                  </div>
+                )}
+
+                {p.isFirstHomeBuyer && p.includeFhbGrant && (
+                  <div className="rounded-2xl border-t-4 bg-white px-3 py-2.5" style={{ borderColor: "#49A078", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                    <p className="text-xs font-medium" style={{ color: "#3D5A80" }}>First home owner grant</p>
+                    <p className="mt-0.5 text-sm font-semibold" style={{ color: "#0F172A" }}>{formatMoney(p.fhbGrantAmount)}</p>
+                    {p.fhbGrantNote && <p className="mt-0.5 text-[11px] leading-snug" style={{ color: "#64748B" }}>{p.fhbGrantNote}</p>}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -379,7 +494,7 @@ export default function ComparePage() {
       <div className="mx-auto max-w-6xl px-6 pb-16">
         <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
           <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>How to compare investment properties</h2>
-          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-8 sm:grid-cols-2">
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>What the colour coding means</h3>
               <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>The green and red colour coding is relative to your three properties — green is the best performer in that metric, red is the weakest. Loan amount and repayments are ranked in isolation (lower is better). Yield and cashflow use absolute benchmarks: the 4% and 6% thresholds for yield, and ±$10 per week as the dividing line between negative, neutral, and positive cashflow.</p>
@@ -390,7 +505,11 @@ export default function ComparePage() {
             </div>
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Live sync from Property Explorer</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Property A automatically picks up your saved inputs from the Property Explorer. Any changes you make there — purchase price, rent, expenses, loan details — sync here instantly. This makes it easy to run what-if scenarios without re-entering data across both tools. Properties B and C are entered directly in the comparison table above.</p>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Property A automatically picks up your saved inputs from the Property Explorer, including purchase price, rent, expenses, loan details, and now your state and first-home-buyer settings too. Any changes you make there sync here instantly, so what-if scenarios stay consistent without re-entering data. Properties B and C are entered directly in the comparison table above.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Comparing first-home-buyer scenarios across states</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Each property has its own state, first-home-buyer, and property-type toggle, so you can compare very different scenarios side by side — for example, an established home in one state against a new build elsewhere that qualifies for a First Home Owner Grant. The grant is applied here as a reduction to loan amount; stamp duty isn&apos;t included in this page&apos;s numbers (use the Property Explorer for a full stamp-duty-inclusive estimate, including the ACT&apos;s full exemption for first home buyers from 1 July 2026).</p>
             </div>
           </div>
         </div>
@@ -409,6 +528,7 @@ export default function ComparePage() {
                 { label: "Weekly rent", value: `$${parseMoney(a.rent).toLocaleString()}` },
                 { label: "Annual expenses", value: `$${parseMoney(a.expenses).toLocaleString()}` },
                 { label: "Interest rate", value: `${a.rate}%` },
+                ...(a.fhbGrantAmount > 0 ? [{ label: "First home owner grant", value: `-${formatMoney(a.fhbGrantAmount)}` }] : []),
                 { label: "Loan amount", value: formatMoney(a.loanAmount) },
                 { label: "Monthly repayment", value: formatMoney(a.monthly) },
                 { label: "Weekly cashflow", value: formatMoney(a.weeklyCashflow) },
@@ -424,6 +544,7 @@ export default function ComparePage() {
                 { label: "Weekly rent", value: `$${parseMoney(b.rent).toLocaleString()}` },
                 { label: "Annual expenses", value: `$${parseMoney(b.expenses).toLocaleString()}` },
                 { label: "Interest rate", value: `${b.rate}%` },
+                ...(b.fhbGrantAmount > 0 ? [{ label: "First home owner grant", value: `-${formatMoney(b.fhbGrantAmount)}` }] : []),
                 { label: "Loan amount", value: formatMoney(b.loanAmount) },
                 { label: "Monthly repayment", value: formatMoney(b.monthly) },
                 { label: "Weekly cashflow", value: formatMoney(b.weeklyCashflow) },
@@ -439,6 +560,7 @@ export default function ComparePage() {
                 { label: "Weekly rent", value: `$${parseMoney(c.rent).toLocaleString()}` },
                 { label: "Annual expenses", value: `$${parseMoney(c.expenses).toLocaleString()}` },
                 { label: "Interest rate", value: `${c.rate}%` },
+                ...(c.fhbGrantAmount > 0 ? [{ label: "First home owner grant", value: `-${formatMoney(c.fhbGrantAmount)}` }] : []),
                 { label: "Loan amount", value: formatMoney(c.loanAmount) },
                 { label: "Monthly repayment", value: formatMoney(c.monthly) },
                 { label: "Weekly cashflow", value: formatMoney(c.weeklyCashflow) },

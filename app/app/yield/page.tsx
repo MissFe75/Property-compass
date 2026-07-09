@@ -402,7 +402,7 @@ export default function YieldPage() {
       <div className="mx-auto max-w-6xl px-6 pb-16">
         <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
           <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>Understanding rental yield</h2>
-          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-8 sm:grid-cols-2">
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Gross yield vs net yield</h3>
               <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Gross yield is simply annual rent divided by the purchase price — the headline figure you&apos;ll see on property listings. Net yield goes further, deducting vacancy, property management fees, council rates, insurance, and other holding costs. Net yield is what you actually earn and the number that matters when comparing investment properties.</p>
@@ -414,6 +414,10 @@ export default function YieldPage() {
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Don&apos;t forget depreciation</h3>
               <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>A quantity surveyor&apos;s depreciation schedule lets you claim wear and tear on the building and fixtures as a tax deduction each year. On a newer property this can be worth $5,000–$15,000+ in deductions annually — significantly improving your real after-tax return. Depreciation isn&apos;t included in this yield calculation but is worth factoring in separately when evaluating a property.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Land tax varies a lot by state</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Land tax is charged annually on the unimproved value of land you own above a threshold, and both the threshold and rate differ significantly by state — for example, NSW&apos;s general threshold is frozen at $1,075,000 (premium $6,571,000) through the 2026 land tax year. The Land tax field here is a flat annual figure you enter yourself; it doesn&apos;t calculate the threshold for you, so check your state revenue office for the current number.</p>
             </div>
           </div>
         </div>

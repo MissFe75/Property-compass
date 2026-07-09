@@ -105,17 +105,17 @@ function calculateEstimatedStampDuty(purchasePrice: number, state: string): numb
 
 function calcIncomeTax(income: number): number {
   if (income <= 18200) return 0;
-  if (income <= 45000) return (income - 18200) * 0.19;
-  if (income <= 120000) return 5092 + (income - 45000) * 0.325;
-  if (income <= 180000) return 29467 + (income - 120000) * 0.37;
-  return 51667 + (income - 180000) * 0.45;
+  if (income <= 45000) return (income - 18200) * 0.15;
+  if (income <= 135000) return 4020 + (income - 45000) * 0.30;
+  if (income <= 190000) return 31020 + (income - 135000) * 0.37;
+  return 51370 + (income - 190000) * 0.45;
 }
 
 function marginalBracket(income: number): string {
   if (income <= 18200) return "0%";
-  if (income <= 45000) return "19%";
-  if (income <= 120000) return "32.5%";
-  if (income <= 180000) return "37%";
+  if (income <= 45000) return "15%";
+  if (income <= 135000) return "30%";
+  if (income <= 190000) return "37%";
   return "45%";
 }
 
@@ -431,14 +431,14 @@ export default function CGTPage() {
       <div className="mx-auto max-w-6xl px-6 pb-16">
         <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
           <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>Capital Gains Tax on Australian property</h2>
-          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-8 sm:grid-cols-2">
             <div>
-              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>The 50% CGT discount</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>If you&apos;ve owned an investment property for more than 12 months, you&apos;re generally entitled to the ATO&apos;s 50% CGT discount for individuals. This means only half your capital gain is added to your taxable income. For example, a $300,000 capital gain becomes a $150,000 taxable gain. The discount applies to individuals and most trusts, but not to companies.</p>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>The 50% CGT discount — changing from 1 July 2027</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>If you&apos;ve owned an investment property for more than 12 months, you&apos;re generally entitled to the ATO&apos;s 50% CGT discount for individuals. This means only half your capital gain is added to your taxable income. For example, a $300,000 capital gain becomes a $150,000 taxable gain. The discount applies to individuals and most trusts, but not to companies. A federal reform passed in the 2026-27 Budget will replace this discount with cost-base indexation plus a 30% minimum tax on real gains, starting 1 July 2027 — this calculator still uses the current 50% discount, which remains correct for any sale before that date.</p>
             </div>
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>How CGT is calculated</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Your capital gain is the sale price minus your cost base — which includes the purchase price, stamp duty, legal fees, and any capital improvements you&apos;ve made. The taxable gain is then added to your ordinary income for that financial year and taxed at your marginal rate. Because a large gain can push you into a higher tax bracket, the salary field helps estimate the real impact.</p>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Your capital gain is the sale price minus your cost base — which includes the purchase price, stamp duty, legal fees, and any capital improvements you&apos;ve made. The taxable gain is then added to your ordinary income for that financial year and taxed at your marginal rate. Because a large gain can push you into a higher tax bracket, the salary field helps estimate the real impact. Marginal rates here reflect the FY2026-27 ATO brackets, including the rate cut on the $18,201–$45,000 bracket from 16% to 15% effective 1 July 2026.</p>
             </div>
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Main residence and exemptions</h3>

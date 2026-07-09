@@ -51,7 +51,135 @@ function handleMoneyChange(
   });
 }
 
-function calculateEstimatedStampDuty(purchasePrice: number, state: string): number {
+type PropertyType = "Established" | "New build" | "Vacant land";
+const PROPERTY_TYPES: PropertyType[] = ["Established", "New build", "Vacant land"];
+
+// First-home-buyer duty concession bands by state and property type, as at July 2026.
+// { exempt: price at/below which duty is $0, ceiling: price at/above which no concession applies }.
+// Between the two, we taper the standard duty linearly to 0 as an estimate — state revenue
+// offices don't publish a simple formula for this band, so treat it as an approximation.
+// Infinity/Infinity = uncapped full exemption. null = no FHB duty concession modelled for this
+// state/property type combination (see note text below for why).
+const FHB_THRESHOLDS: Record<string, Record<PropertyType, { exempt: number; ceiling: number } | null>> = {
+  NSW: {
+    Established: { exempt: 800000, ceiling: 1000000 },
+    "New build": { exempt: 800000, ceiling: 1000000 },
+    "Vacant land": { exempt: 350000, ceiling: 450000 },
+  },
+  QLD: {
+    Established: { exempt: 700000, ceiling: 800000 },
+    "New build": { exempt: Infinity, ceiling: Infinity },
+    "Vacant land": { exempt: Infinity, ceiling: Infinity },
+  },
+  VIC: {
+    Established: { exempt: 600000, ceiling: 750000 },
+    "New build": { exempt: 600000, ceiling: 750000 },
+    "Vacant land": { exempt: 600000, ceiling: 750000 },
+  },
+  WA: {
+    Established: { exempt: 600000, ceiling: 800000 },
+    "New build": { exempt: 600000, ceiling: 800000 },
+    "Vacant land": { exempt: 450000, ceiling: 550000 },
+  },
+  SA: {
+    Established: null,
+    "New build": { exempt: Infinity, ceiling: Infinity },
+    "Vacant land": { exempt: 400000, ceiling: 450000 },
+  },
+  NT: { Established: null, "New build": null, "Vacant land": null },
+  TAS: { Established: null, "New build": null, "Vacant land": null },
+};
+
+// First Home Owner Grant (FHOG) — a cash grant, separate from the duty concessions above. It's a
+// hard price cap (no partial/taper) and, in every state that offers one, only ever applies to new
+// builds and vacant land/house-and-land packages, never established homes. As at July 2026.
+// null = no grant modelled (ACT abolished its FHOG in 2019 in favour of the duty exemption above;
+// NT and TAS are single combined/uncapped figures — see note text for caveats).
+const FHB_GRANTS: Record<string, Record<PropertyType, { amount: number; cap: number } | null>> = {
+  NSW: {
+    Established: null,
+    "New build": { amount: 10000, cap: 600000 },
+    "Vacant land": { amount: 10000, cap: 750000 },
+  },
+  QLD: {
+    Established: null,
+    "New build": { amount: 30000, cap: 750000 },
+    "Vacant land": { amount: 30000, cap: 750000 },
+  },
+  VIC: {
+    Established: null,
+    "New build": { amount: 10000, cap: 750000 },
+    "Vacant land": { amount: 10000, cap: 750000 },
+  },
+  SA: {
+    Established: null,
+    "New build": { amount: 15000, cap: Infinity },
+    "Vacant land": { amount: 15000, cap: Infinity },
+  },
+  WA: {
+    Established: null,
+    "New build": { amount: 10000, cap: 800000 },
+    "Vacant land": { amount: 10000, cap: 800000 },
+  },
+  TAS: {
+    Established: null,
+    "New build": { amount: 20000, cap: Infinity },
+    "Vacant land": { amount: 20000, cap: Infinity },
+  },
+  NT: {
+    Established: null,
+    "New build": { amount: 80000, cap: Infinity },
+    "Vacant land": { amount: 80000, cap: Infinity },
+  },
+  ACT: { Established: null, "New build": null, "Vacant land": null },
+};
+
+function getFhbGrantAmount(
+  state: string,
+  purchasePrice: number,
+  propertyType: PropertyType,
+  isFirstHomeBuyer: boolean,
+  includeGrant: boolean
+): number {
+  if (!isFirstHomeBuyer || !includeGrant) return 0;
+  const grant = FHB_GRANTS[state]?.[propertyType];
+  if (!grant) return 0;
+  if (purchasePrice > grant.cap) return 0;
+  return grant.amount;
+}
+
+function getFhbGrantNote(
+  state: string,
+  purchasePrice: number,
+  propertyType: PropertyType,
+  isFirstHomeBuyer: boolean
+): string | null {
+  if (!isFirstHomeBuyer) return null;
+  const typeLabel = propertyType.toLowerCase();
+
+  if (state === "ACT") {
+    return "ACT abolished its First Home Owner Grant in 2019 — it now relies solely on the stamp duty exemption above.";
+  }
+  if (propertyType === "Established") {
+    return "First Home Owner Grants only apply to new builds and vacant land in every state — established homes aren't eligible anywhere.";
+  }
+
+  const grant = FHB_GRANTS[state]?.[propertyType];
+  if (!grant) return null;
+
+  if (purchasePrice > grant.cap) {
+    return `Not eligible — ${state}'s First Home Owner Grant for ${typeLabel} purchases only applies up to ${formatMoney(grant.cap)} (hard cap, no partial grant above it).`;
+  }
+
+  let extra = "";
+  if (state === "WA") extra = " (the cap is $1,000,000 for properties north of the 26th parallel — not distinguished here)";
+  if (state === "NT") extra = " — this combines the HomeGrown Territory Grant ($50,000) and FreshStart Grant ($30,000), which have their own separate eligibility conditions and an end date of 30 September 2026";
+  if (state === "TAS") extra = " (dropped from $30,000 to $20,000 for contracts signed from 1 July 2026)";
+
+  return `${formatMoney(grant.amount)} — ${state}'s First Home Owner Grant for ${typeLabel} purchases up to ${isFinite(grant.cap) ? formatMoney(grant.cap) : "any price"}${extra}.`;
+}
+
+function calculateStandardDuty(purchasePrice: number, state: string): number {
   if (purchasePrice <= 0) return 0;
   const p = purchasePrice;
 
@@ -125,6 +253,95 @@ function calculateEstimatedStampDuty(purchasePrice: number, state: string): numb
   }
 }
 
+// States/property-types where the taper between exempt and ceiling uses a verified official
+// formula rather than a linear guess. QLD: QRO publishes the exact home-concession rate plus a
+// deduction table (confirmed linear across all 10 published $10k bands). VIC: the SRO's sliding
+// scale is legislated as general duty × (value − $600,000) / $150,000, which is exactly the
+// linear-on-standard-duty formula used below — so VIC's "taper" already is the real formula.
+const FHB_EXACT_TAPER = new Set(["QLD", "VIC"]);
+
+// Queensland's home concession rate (owner-occupier rate, lower than the standard/investor duty
+// used elsewhere in this file) for the $540,000–$1,000,000 bracket — the only bracket the QLD
+// first-home taper band ($700k–$800k) falls within. Source: qro.qld.gov.au concession rates.
+function qldHomeConcessionDuty(p: number): number {
+  return 10150 + 4.5 / 100 * (p - 540000);
+}
+
+// Exact QRO deduction table for the QLD first home concession, $700,000–$800,000, confirmed
+// linear across all 10 published $10k bands (deduction of $1,735 per $10,000 below $800,000).
+function qldFirstHomeDeduction(p: number): number {
+  return 17350 * (800000 - p) / 100000;
+}
+
+function calculateEstimatedStampDuty(
+  purchasePrice: number,
+  state: string,
+  isFirstHomeBuyer: boolean,
+  propertyType: PropertyType
+): number {
+  const standardDuty = calculateStandardDuty(purchasePrice, state);
+  if (!isFirstHomeBuyer) return standardDuty;
+
+  // From 1 July 2026 the ACT abolished stamp duty entirely for first home buyers (no price or income cap).
+  if (state === "ACT") return 0;
+
+  const band = FHB_THRESHOLDS[state]?.[propertyType];
+  if (!band) return standardDuty;
+
+  const p = purchasePrice;
+  if (p <= band.exempt) return 0;
+  if (p >= band.ceiling) return standardDuty;
+
+  if (state === "QLD" && propertyType === "Established") {
+    return qldHomeConcessionDuty(p) - qldFirstHomeDeduction(p);
+  }
+
+  return standardDuty * (p - band.exempt) / (band.ceiling - band.exempt);
+}
+
+function getFhbNote(
+  state: string,
+  purchasePrice: number,
+  isFirstHomeBuyer: boolean,
+  propertyType: PropertyType
+): string | null {
+  if (!isFirstHomeBuyer) return null;
+  const p = purchasePrice;
+  const typeLabel = propertyType.toLowerCase();
+
+  if (state === "ACT") {
+    return "$0 — from 1 July 2026 the ACT abolished stamp duty for all first home buyers, with no price or income cap.";
+  }
+
+  const band = FHB_THRESHOLDS[state]?.[propertyType];
+  if (band) {
+    if (!isFinite(band.exempt)) {
+      return `$0 — ${state} has no price cap on its first-home-buyer duty exemption for ${typeLabel} purchases.`;
+    }
+    if (p <= band.exempt) {
+      return `$0 — ${typeLabel} purchases up to ${formatMoney(band.exempt)} are duty-exempt for first home buyers in ${state}.`;
+    }
+    if (p < band.ceiling) {
+      const basis = FHB_EXACT_TAPER.has(state)
+        ? `Calculated from ${state}'s published concession formula.`
+        : `${state} doesn't publish a formula for this band (only an internal calculator), so this is our best estimate — it may differ slightly from the final figure at settlement.`;
+      return `${state}'s first-home-buyer concession for ${typeLabel} purchases phases out between ${formatMoney(band.exempt)} and ${formatMoney(band.ceiling)}. ${basis}`;
+    }
+    return `No concession — ${state}'s first-home-buyer exemption for ${typeLabel} purchases only applies up to ${formatMoney(band.ceiling)}. This is the standard rate.`;
+  }
+
+  if (state === "SA" && propertyType === "Established") {
+    return "SA doesn't offer a stamp duty concession to first home buyers on established homes — only new homes and vacant land qualify. This is the standard rate.";
+  }
+  if (state === "TAS") {
+    return "Tasmania's first-home-buyer duty exemption (established homes and vacant land up to $750,000) only applied to settlements up to 30 June 2026 and has now expired — this is the standard rate.";
+  }
+  if (state === "NT") {
+    return "The NT doesn't currently have a confirmed general stamp-duty concession for first home buyers — instead it offers cash grants (HomeGrown Territory Grant + FreshStart Grant). This is the standard rate.";
+  }
+  return null;
+}
+
 function calculateMonthlyRepayment(
   loanAmount: number,
   annualRatePercent: number,
@@ -168,6 +385,9 @@ export default function AppPage() {
   const [loanTerm, setLoanTerm] = useState("30");
   const [repaymentType, setRepaymentType] = useState("Principal & Interest");
   const [state, setState] = useState("QLD");
+  const [isFirstHomeBuyer, setIsFirstHomeBuyer] = useState(false);
+  const [propertyType, setPropertyType] = useState<PropertyType>("Established");
+  const [includeFhbGrant, setIncludeFhbGrant] = useState(true);
 
   const [weeklyRent, setWeeklyRent] = useState("620");
   const [rentFreq, setRentFreq] = useState("Weekly");
@@ -180,7 +400,10 @@ export default function AppPage() {
   const [insurance, setInsurance] = useState("1,200");
 
   const currentPurchase = parseMoney(purchasePrice);
-  const currentStampDuty = calculateEstimatedStampDuty(currentPurchase, state);
+  const currentStampDuty = calculateEstimatedStampDuty(currentPurchase, state, isFirstHomeBuyer, propertyType);
+  const fhbNote = getFhbNote(state, currentPurchase, isFirstHomeBuyer, propertyType);
+  const fhbGrantAmount = getFhbGrantAmount(state, currentPurchase, propertyType, isFirstHomeBuyer, includeFhbGrant);
+  const fhbGrantNote = getFhbGrantNote(state, currentPurchase, propertyType, isFirstHomeBuyer);
   const currentBuyingCosts =
     parseMoney(conveyancer) +
     parseMoney(buildingPest) +
@@ -189,7 +412,7 @@ export default function AppPage() {
     parseMoney(titleInsurance);
 
   const currentLoanAmount =
-    currentPurchase + currentStampDuty + currentBuyingCosts - parseMoney(deposit);
+    currentPurchase + currentStampDuty + currentBuyingCosts - parseMoney(deposit) - fhbGrantAmount;
 
   const rentMultiplier = rentFreq === "Weekly" ? 52 : rentFreq === "Fortnightly" ? 26 : rentFreq === "Monthly" ? 12 : 1;
   const currentAnnualRent = parseMoney(weeklyRent) * rentMultiplier;
@@ -228,8 +451,12 @@ export default function AppPage() {
       rentFreq,
       expenses: Math.round(totalExpenses).toLocaleString("en-AU"),
       rate: interestRate,
+      state,
+      isFirstHomeBuyer,
+      propertyType,
+      includeFhbGrant,
     }));
-  }, [purchasePrice, deposit, weeklyRent, rentFreq, landlordIns, bodyCorp, maintenance, councilRates, insurance, interestRate]);
+  }, [purchasePrice, deposit, weeklyRent, rentFreq, landlordIns, bodyCorp, maintenance, councilRates, insurance, interestRate, state, isFirstHomeBuyer, propertyType, includeFhbGrant]);
 
   return (
     <main
@@ -424,12 +651,81 @@ export default function AppPage() {
                   </select>
                 </div>
 
+                <div className="flex items-center gap-2 sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    id="fhb-toggle"
+                    checked={isFirstHomeBuyer}
+                    onChange={(e) => setIsFirstHomeBuyer(e.target.checked)}
+                    className="h-4 w-4 rounded"
+                    style={{ accentColor: "#3D5A80" }}
+                  />
+                  <label htmlFor="fhb-toggle" className="text-sm font-medium" style={{ color: "#3D5A80" }}>
+                    First home buyer
+                  </label>
+                </div>
+
+                {isFirstHomeBuyer && (
+                  <div className="sm:col-span-2">
+                    <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>
+                      Property type
+                    </label>
+                    <select
+                      value={propertyType}
+                      onChange={(e) => setPropertyType(e.target.value as PropertyType)}
+                      className="w-full rounded-2xl border bg-white px-4 py-3 outline-none"
+                      style={{ borderColor: "#E7E0D6", color: "#0F172A" }}
+                    >
+                      {PROPERTY_TYPES.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {isFirstHomeBuyer && (
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      id="fhb-grant-toggle"
+                      checked={includeFhbGrant}
+                      onChange={(e) => setIncludeFhbGrant(e.target.checked)}
+                      className="h-4 w-4 rounded"
+                      style={{ accentColor: "#3D5A80" }}
+                    />
+                    <label htmlFor="fhb-grant-toggle" className="text-sm font-medium" style={{ color: "#3D5A80" }}>
+                      Include First Home Owner Grant (cash grant)
+                    </label>
+                  </div>
+                )}
+
+                {isFirstHomeBuyer && includeFhbGrant && (
+                  <div className="sm:col-span-2">
+                    <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>First home owner grant</label>
+                    <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#49A078", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                      <p className="text-base font-semibold" style={{ color: "#0F172A" }}>
+                        {formatMoney(fhbGrantAmount)}
+                      </p>
+                      {fhbGrantNote && (
+                        <p className="mt-1 text-xs" style={{ color: "#64748B" }}>
+                          {fhbGrantNote}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Stamp duty (est.)</label>
                   <div className="rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#3D5A80", backgroundColor: "#FAF7F2", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
                     <p className="text-base font-semibold" style={{ color: "#0F172A" }}>
                       {formatMoney(currentStampDuty)}
                     </p>
+                    {fhbNote && (
+                      <p className="mt-1 text-xs" style={{ color: "#64748B" }}>
+                        {fhbNote}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -962,10 +1258,10 @@ export default function AppPage() {
       <div className="mx-auto max-w-6xl px-6 pb-16">
         <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
           <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>How to analyse an investment property</h2>
-          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-8 sm:grid-cols-2">
             <div>
-              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>What stamp duty costs and why it matters</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Stamp duty (transfer duty in Queensland) is a state government tax paid when you buy property. It&apos;s calculated as a percentage of the purchase price and adds $10,000–$30,000+ to your upfront costs depending on the price and state. Because it increases your total cost base, it reduces your effective yield and affects your borrowing position. This calculator estimates stamp duty using Queensland rates.</p>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Stamp duty by state, including 2026 first-home-buyer changes</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Stamp duty (transfer duty in Queensland) is a state government tax paid when you buy property, typically adding $10,000–$30,000+ to your upfront costs. This calculator uses full duty schedules for all eight states and territories. If you&apos;re a first home buyer, tick the toggle above — from 1 July 2026 the ACT abolished stamp duty entirely for first home buyers, and NSW, QLD, VIC, WA and SA each offer their own exemption or concession depending on price and whether you&apos;re buying an established home, a new build, or vacant land.</p>
             </div>
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Gross yield vs net yield</h3>
@@ -973,7 +1269,11 @@ export default function AppPage() {
             </div>
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Negative gearing explained</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>A property is negatively geared when your costs — including mortgage repayments — exceed your rental income. In Australia, this shortfall is generally tax-deductible, which reduces the real after-tax cost. Most investment properties in capital cities are negatively geared, with investors accepting the cashflow deficit in exchange for expected long-term capital growth. Positive gearing means rental income exceeds all your costs.</p>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>A property is negatively geared when your costs — including mortgage repayments — exceed your rental income. In Australia, this shortfall is generally tax-deductible, which reduces the real after-tax cost. Most investment properties in capital cities are negatively geared, with investors accepting the cashflow deficit in exchange for expected long-term capital growth. A federal reform passed in the 2026-27 Budget will ring-fence rental losses on properties bought after 12 May 2026 to rental income only, starting 1 July 2027 (new builds are exempt) — it doesn&apos;t affect existing investments or the current financial year.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>First Home Owner Grants in 2026</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>On top of any stamp duty concession, most states pay a cash grant to first home buyers building or buying a new home: QLD ($30,000), NSW and VIC ($10,000), SA ($15,000, uncapped), WA ($10,000), TAS ($20,000 from 1 July 2026), and the NT (up to $80,000 across two grants). These only apply to new builds and vacant land, never established homes — and the ACT doesn&apos;t offer one at all, relying solely on its stamp duty exemption instead. Tick &quot;Include First Home Owner Grant&quot; above to see it reflected in your loan amount.</p>
             </div>
           </div>
         </div>
@@ -990,6 +1290,7 @@ export default function AppPage() {
                 { label: "Deposit", value: formatMoney(parseMoney(deposit)) },
                 { label: "Stamp duty (est.)", value: formatMoney(currentStampDuty) },
                 { label: "Total buying costs", value: formatMoney(currentBuyingCosts) },
+                ...(fhbGrantAmount > 0 ? [{ label: "First home owner grant", value: `-${formatMoney(fhbGrantAmount)}` }] : []),
                 { label: "Loan amount", value: formatMoney(currentLoanAmount) },
               ],
             },

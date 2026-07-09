@@ -59,11 +59,74 @@ function calculateMonthlyRepayment(
 }
 
 const TAX_RATES = [
-  { label: "19% (up to $45k)", rate: 0.19 },
-  { label: "32.5% ($45k–$120k)", rate: 0.325 },
-  { label: "37% ($120k–$180k)", rate: 0.37 },
-  { label: "45% (over $180k)", rate: 0.45 },
+  { label: "15% ($18.2k–$45k)", rate: 0.15 },
+  { label: "30% ($45k–$135k)", rate: 0.30 },
+  { label: "37% ($135k–$190k)", rate: 0.37 },
+  { label: "45% (over $190k)", rate: 0.45 },
 ];
+
+type PropertyType = "Established" | "New build" | "Vacant land";
+const PROPERTY_TYPES: PropertyType[] = ["Established", "New build", "Vacant land"];
+
+// First Home Owner Grant (FHOG) — a cash grant that reduces the effective loan amount. Hard price
+// cap (no partial/taper), and in every state that offers one it only applies to new builds and
+// vacant land, never established homes. As at July 2026. null = no grant modelled (ACT abolished
+// its FHOG in 2019 in favour of a stamp duty exemption instead; NT/TAS have caveats — see note text).
+const FHB_GRANTS: Record<string, Record<PropertyType, { amount: number; cap: number } | null>> = {
+  NSW: { Established: null, "New build": { amount: 10000, cap: 600000 }, "Vacant land": { amount: 10000, cap: 750000 } },
+  QLD: { Established: null, "New build": { amount: 30000, cap: 750000 }, "Vacant land": { amount: 30000, cap: 750000 } },
+  VIC: { Established: null, "New build": { amount: 10000, cap: 750000 }, "Vacant land": { amount: 10000, cap: 750000 } },
+  SA: { Established: null, "New build": { amount: 15000, cap: Infinity }, "Vacant land": { amount: 15000, cap: Infinity } },
+  WA: { Established: null, "New build": { amount: 10000, cap: 800000 }, "Vacant land": { amount: 10000, cap: 800000 } },
+  TAS: { Established: null, "New build": { amount: 20000, cap: Infinity }, "Vacant land": { amount: 20000, cap: Infinity } },
+  NT: { Established: null, "New build": { amount: 80000, cap: Infinity }, "Vacant land": { amount: 80000, cap: Infinity } },
+  ACT: { Established: null, "New build": null, "Vacant land": null },
+};
+
+function getFhbGrantAmount(
+  state: string,
+  purchasePrice: number,
+  propertyType: PropertyType,
+  isFirstHomeBuyer: boolean,
+  includeGrant: boolean
+): number {
+  if (!isFirstHomeBuyer || !includeGrant) return 0;
+  const grant = FHB_GRANTS[state]?.[propertyType];
+  if (!grant) return 0;
+  if (purchasePrice > grant.cap) return 0;
+  return grant.amount;
+}
+
+function getFhbGrantNote(
+  state: string,
+  purchasePrice: number,
+  propertyType: PropertyType,
+  isFirstHomeBuyer: boolean
+): string | null {
+  if (!isFirstHomeBuyer) return null;
+  const typeLabel = propertyType.toLowerCase();
+
+  if (state === "ACT") {
+    return "ACT abolished its First Home Owner Grant in 2019 — it relies solely on a stamp duty exemption instead (not modelled on this page).";
+  }
+  if (propertyType === "Established") {
+    return "First Home Owner Grants only apply to new builds and vacant land in every state — established homes aren't eligible anywhere.";
+  }
+
+  const grant = FHB_GRANTS[state]?.[propertyType];
+  if (!grant) return null;
+
+  if (purchasePrice > grant.cap) {
+    return `Not eligible — ${state}'s First Home Owner Grant for ${typeLabel} purchases only applies up to ${formatMoney(grant.cap)} (hard cap, no partial grant above it).`;
+  }
+
+  let extra = "";
+  if (state === "WA") extra = " (the cap is $1,000,000 for properties north of the 26th parallel — not distinguished here)";
+  if (state === "NT") extra = " — this combines the HomeGrown Territory Grant ($50,000) and FreshStart Grant ($30,000), which have their own separate eligibility conditions and an end date of 30 September 2026";
+  if (state === "TAS") extra = " (dropped from $30,000 to $20,000 for contracts signed from 1 July 2026)";
+
+  return `${formatMoney(grant.amount)} — ${state}'s First Home Owner Grant for ${typeLabel} purchases up to ${isFinite(grant.cap) ? formatMoney(grant.cap) : "any price"}${extra}.`;
+}
 
 export default function MortgagePage() {
   const router = useRouter();
@@ -76,12 +139,19 @@ export default function MortgagePage() {
   const [loanTerm, setLoanTerm] = useState("30");
   const [repaymentType, setRepaymentType] = useState("Principal & Interest");
   const [repaymentFrequency, setRepaymentFrequency] = useState("Monthly");
-  const [taxRate, setTaxRate] = useState("0.325");
+  const [taxRate, setTaxRate] = useState("0.30");
   const [extraRepayment, setExtraRepayment] = useState("500");
   const [extraFrequency, setExtraFrequency] = useState("Monthly");
 
+  const [state, setState] = useState("QLD");
+  const [isFirstHomeBuyer, setIsFirstHomeBuyer] = useState(false);
+  const [propertyType, setPropertyType] = useState<PropertyType>("Established");
+  const [includeFhbGrant, setIncludeFhbGrant] = useState(true);
+
   const isInvestment = loanPurpose === "Investment";
-  const loanAmount = parseMoney(purchasePrice) - parseMoney(deposit);
+  const fhbGrantAmount = getFhbGrantAmount(state, parseMoney(purchasePrice), propertyType, isFirstHomeBuyer, includeFhbGrant);
+  const fhbGrantNote = getFhbGrantNote(state, parseMoney(purchasePrice), propertyType, isFirstHomeBuyer);
+  const loanAmount = parseMoney(purchasePrice) - parseMoney(deposit) - fhbGrantAmount;
   const monthly = calculateMonthlyRepayment(loanAmount, parsePercent(interestRate), parseMoney(loanTerm), repaymentType);
   const originalMonths = parseMoney(loanTerm) * 12;
   const totalRepaid = monthly * originalMonths;
@@ -211,6 +281,49 @@ export default function MortgagePage() {
                     <input type="text" value={deposit} onChange={(e) => handleMoneyChange(e, setDeposit)} tabIndex={2} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusField(3); } }} className="min-w-0 flex-1 bg-transparent outline-none" style={{ color: "#0F172A" }} />
                   </div>
                 </div>
+
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>State</label>
+                  <select value={state} onChange={(e) => setState(e.target.value)} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
+                    <option value="QLD">QLD — Queensland</option>
+                    <option value="NSW">NSW — New South Wales</option>
+                    <option value="VIC">VIC — Victoria</option>
+                    <option value="SA">SA — South Australia</option>
+                    <option value="WA">WA — Western Australia</option>
+                    <option value="ACT">ACT — Capital Territory</option>
+                    <option value="NT">NT — Northern Territory</option>
+                    <option value="TAS">TAS — Tasmania</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 sm:col-span-2">
+                  <input type="checkbox" id="fhb-toggle" checked={isFirstHomeBuyer} onChange={(e) => setIsFirstHomeBuyer(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: "#3D5A80" }} />
+                  <label htmlFor="fhb-toggle" className="text-sm font-medium" style={{ color: "#3D5A80" }}>First home buyer</label>
+                </div>
+
+                {isFirstHomeBuyer && (
+                  <div className="sm:col-span-2">
+                    <label className="mb-2 block text-sm font-medium" style={{ color: "#3D5A80" }}>Property type</label>
+                    <select value={propertyType} onChange={(e) => setPropertyType(e.target.value as PropertyType)} className="w-full rounded-2xl border bg-white px-4 py-3 outline-none" style={{ borderColor: "#E7E0D6", color: "#0F172A" }}>
+                      {PROPERTY_TYPES.map((t) => (<option key={t} value={t}>{t}</option>))}
+                    </select>
+                  </div>
+                )}
+
+                {isFirstHomeBuyer && (
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <input type="checkbox" id="fhb-grant-toggle" checked={includeFhbGrant} onChange={(e) => setIncludeFhbGrant(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: "#3D5A80" }} />
+                    <label htmlFor="fhb-grant-toggle" className="text-sm font-medium" style={{ color: "#3D5A80" }}>Include First Home Owner Grant (cash grant)</label>
+                  </div>
+                )}
+
+                {isFirstHomeBuyer && includeFhbGrant && (
+                  <div className="sm:col-span-2 rounded-2xl border-t-4 px-4 py-3" style={{ borderColor: "#49A078", backgroundColor: "white", boxShadow: "inset 0 0 0 1px #E7E0D6" }}>
+                    <p className="text-sm font-medium" style={{ color: "#3D5A80" }}>First home owner grant</p>
+                    <p className="mt-1 text-base font-semibold" style={{ color: "#0F172A" }}>{formatMoney(fhbGrantAmount)}</p>
+                    {fhbGrantNote && <p className="mt-1 text-xs" style={{ color: "#64748B" }}>{fhbGrantNote}</p>}
+                  </div>
+                )}
 
                 <div className="sm:col-span-2 rounded-2xl border bg-white px-4 py-3" style={{ borderColor: "#E7E0D6" }}>
                   <p className="text-sm font-medium" style={{ color: "#3D5A80" }}>Loan amount</p>
@@ -344,7 +457,7 @@ export default function MortgagePage() {
       <div className="mx-auto max-w-6xl px-6 pb-16">
         <div className="border-t pt-10" style={{ borderColor: "#E7E0D6" }}>
           <h2 className="text-2xl font-semibold" style={{ color: "#0F172A" }}>Understanding your mortgage</h2>
-          <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-8 sm:grid-cols-2">
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>Principal &amp; Interest vs Interest Only</h3>
               <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>With Principal &amp; Interest, each repayment reduces your loan balance so you build equity over time. Interest Only means your repayments cover only the interest — the loan amount stays the same. IO is popular with investors because repayments are lower and may improve cashflow, but you&apos;ll pay more interest overall and won&apos;t reduce the underlying debt.</p>
@@ -355,7 +468,11 @@ export default function MortgagePage() {
             </div>
             <div>
               <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>After-tax cost for investors</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>If you&apos;re borrowing to invest, the interest on your loan is generally tax-deductible in Australia. This means your real out-of-pocket cost is lower than the headline repayment figure. Toggle to Investment mode and select your marginal tax rate to see your actual after-tax repayment — the amount that truly comes out of your pocket each month.</p>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>If you&apos;re borrowing to invest, the interest on your loan is generally tax-deductible in Australia. This means your real out-of-pocket cost is lower than the headline repayment figure. Toggle to Investment mode and select your marginal tax rate to see your actual after-tax repayment — the amount that truly comes out of your pocket each month. Marginal tax rates here reflect the FY2026-27 ATO brackets, including the rate cut on the $18,201–$45,000 bracket from 16% to 15% effective 1 July 2026.</p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-semibold" style={{ color: "#314A6E" }}>First home buyer support in 2026</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>Tick &quot;First home buyer&quot; above to reduce your loan amount by the relevant First Home Owner Grant — a cash payment separate from any stamp duty concession, ranging from $10,000 (NSW, VIC, WA) to $30,000 (QLD) depending on your state, and only available for new builds or vacant land. The ACT doesn&apos;t offer a cash grant, but from 1 July 2026 it abolished stamp duty entirely for first home buyers instead.</p>
             </div>
           </div>
         </div>
@@ -371,6 +488,8 @@ export default function MortgagePage() {
                 { label: "Loan purpose", value: loanPurpose },
                 { label: "Purchase price", value: formatMoney(parseMoney(purchasePrice)) },
                 { label: "Deposit", value: formatMoney(parseMoney(deposit)) },
+                ...(fhbGrantAmount > 0 ? [{ label: "First home owner grant", value: `-${formatMoney(fhbGrantAmount)}` }] : []),
+                { label: "Loan amount", value: formatMoney(loanAmount) },
                 { label: "Interest rate", value: `${interestRate}%` },
                 { label: "Loan term", value: `${loanTerm} years` },
                 { label: "Repayment type", value: repaymentType },
