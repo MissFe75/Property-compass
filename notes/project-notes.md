@@ -73,7 +73,7 @@ Refer to Bearing's Capacitor setup as a working reference — the process is ide
 
 ## Notes
 
-- Live URL: https://sextantdigital.com.au
+- Live URL: https://propertycompass.sextantdigital.com.au (main studio site: https://sextantdigital.com.au)
 - Hosting: Vercel (auto-deploys on every GitHub push to main)
 - DNS: Cloudflare managing sextantdigital.com.au → Vercel
 - sextantdigital.au redirects → sextantdigital.com.au via Cloudflare Page Rule

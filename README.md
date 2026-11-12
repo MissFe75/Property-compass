@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Property Compass
 
-## Getting Started
+Free Australian property investment calculators by **Sextant Digital**. Live at **[propertycompass.sextantdigital.com.au](https://propertycompass.sextantdigital.com.au)**.
 
-First, run the development server:
+Built with Next.js (App Router) + Tailwind CSS, hosted on Vercel. No backend, database or login: everything runs in the browser. PDF reports are made with `jspdf`.
+
+## Deploying
+
+**Pushing to `main` deploys to production automatically** (Vercel ↔ GitHub, usually live within a minute). There is no staging step, so check before you push:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx next build   # must pass cleanly
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+DNS is on Cloudflare.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Open http://localhost:3000.
 
-To learn more about Next.js, take a look at the following resources:
+## Pages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Page | Route | File |
+|---|---|---|
+| Landing page | `/` | `app/page.tsx` |
+| Property Explorer (includes stamp duty) | `/app` | `app/app/page.tsx` |
+| Mortgage Calculator | `/app/mortgage` | `app/app/mortgage/page.tsx` |
+| Yield Calculator | `/app/yield` | `app/app/yield/page.tsx` |
+| Capital Gains Tax Estimator | `/app/cgt` | `app/app/cgt/page.tsx` |
+| Compare Properties | `/app/compare` | `app/app/compare/page.tsx` |
+| All tools | `/tools` | `app/tools/page.tsx` |
+| Lab | `/lab` | `app/lab/page.tsx` |
+| Work with me | `/work-with-me` | `app/work-with-me/page.tsx` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Shared pieces live in `app/components/` (nav, footers, PDF modal).
 
-## Deploy on Vercel
+Tax and stamp duty rules were last updated for the **July 2026** law changes. Re-check them each new financial year.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Email links use `mailto:hello@sextantdigital.com.au` (Zoho Mail, forwarded to Gmail).
+
+## Notes
+
+- `notes/project-notes.md`: status, next steps, app store plans (Capacitor).
+- `notes/progress.md`: session log.
+- `notes/FHB-Kit-Source-of-Truth.md`: every input and calculation in the calculators, documented for the First Home Buyer Starter Kit.
+
+## Related
+
+| Site | Repo | URL |
+|---|---|---|
+| Sextant Digital (studio site) | `MissFe75/sextant-website` | sextantdigital.com.au |
+
+## Licence
+
+All rights reserved. See `LICENSE`.
