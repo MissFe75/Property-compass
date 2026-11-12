@@ -38,9 +38,7 @@ export default function Footer() {
         >
           <p>© 2026 Sextant Digital. All rights reserved.</p>
           <a
-            href="https://mail.google.com/mail/?view=cm&to=hello@sextantdigital.com.au"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:hello@sextantdigital.com.au"
             className="transition-colors hover:text-slate-300"
             style={{ color: "#A8BFD0" }}
           >

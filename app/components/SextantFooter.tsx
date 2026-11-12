@@ -12,9 +12,7 @@ export default function SextantFooter() {
           <span>© 2026 Sextant Digital. All rights reserved.</span>
           <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
           <a
-            href="https://mail.google.com/mail/?view=cm&to=hello@sextantdigital.com.au"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:hello@sextantdigital.com.au"
             className="transition-colors hover:text-white/50"
             style={{ color: 'rgba(255,255,255,0.25)' }}
           >

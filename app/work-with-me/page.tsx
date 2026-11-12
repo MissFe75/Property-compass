@@ -78,9 +78,7 @@ export default function WorkWithMePage() {
             Got a project, an idea, or just a question? I&apos;d love to hear from you. No obligation, no sales pitch.
           </p>
           <a
-            href="https://mail.google.com/mail/?view=cm&to=hello@sextantdigital.com.au&su=Working%20with%20Sextant%20Digital"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:hello@sextantdigital.com.au?subject=Working%20with%20Sextant%20Digital"
             className="inline-flex items-center gap-2 rounded-full px-10 py-4 text-sm font-medium transition-colors hover:bg-white/90"
             style={{ background: 'white', color: '#060d1f' }}
           >
